@@ -16,9 +16,8 @@ dist-ssr
 .nitro
 *.local
 .env
-/.env
-env
-
+.vercel
+.env.local
 
 # Wrangler / Cloudflare
 .wrangler/
