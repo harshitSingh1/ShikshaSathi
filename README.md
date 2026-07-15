@@ -7,7 +7,7 @@
 ![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000?logo=vercel)
 ![TanStack Start](https://img.shields.io/badge/Built_with-TanStack_Start_%26_React_19-141321?logo=react)
 ![AI Engine](https://img.shields.io/badge/AI-Google_Gemini_2.0_Flash-4285F4?logo=google)
-![Voice](https://img.shields/badge/Voice-ElevenLabs_%2B_WebSpeech-000?logo=openai)
+![Voice](https://img.shields.io/badge/Voice-ElevenLabs%20%2B%20Web%20Speech-000000?logo=elevenlabs&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 **ShikshaSathi** is a voice-first AI co-teacher built for Indian school classrooms. A teacher speaks or types a topic, and the system instantly generates a complete, grade-appropriate lesson in Hinglish — complete with visuals, quizzes, classroom activities, and an AI-generated narration. It runs on smart boards, works offline, and supports multilingual teaching across all subjects.
