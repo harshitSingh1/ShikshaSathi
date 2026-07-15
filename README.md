@@ -1,18 +1,8 @@
 # ShikshaSathi
 
-## 🎥 Watch the Demo
+## 🎥 Demo Video
 
-<p align="center">
-  <a href="https://youtu.be/ep4OIAwELao">
-    <img src="https://img.youtube.com/vi/ep4OIAwELao/maxresdefault.jpg" width="800">
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://youtu.be/ep4OIAwELao">
-    <img src="https://img.shields.io/badge/▶%20Watch%20Demo%20on%20YouTube-red?style=for-the-badge&logo=youtube">
-  </a>
-</p>
+[![Watch the Demo](https://img.youtube.com/vi/ep4OIAwELao/maxresdefault.jpg)](https://youtu.be/ep4OIAwELao)
 
 ![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000?logo=vercel)
 ![TanStack Start](https://img.shields.io/badge/Built_with-TanStack_Start_%26_React_19-141321?logo=react)
