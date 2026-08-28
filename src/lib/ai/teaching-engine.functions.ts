@@ -51,11 +51,11 @@ if (intent === "quiz") {
   });
   
 
-function detectIntent(t: string): "teaching" | "quiz" {
+export function detectIntent(t: string): "teaching" | "quiz" {
   return /\b(quiz|mcq|question|test)\b/i.test(t) ? "quiz" : "teaching";
 }
 
-function extractTopic(text: string, fallback?: string): string {
+export function extractTopic(text: string, fallback?: string): string {
   const cleaned = text.trim().replace(/^["']|["']$/g, "");
 
   // quiz on xyz
@@ -64,9 +64,7 @@ function extractTopic(text: string, fallback?: string): string {
   );
 
   if (quizMatch?.[1]) {
-    return quizMatch[1]
-      .replace(/[.?!]+$/, "")
-      .trim();
+    return cleanTopic(quizMatch[1]);
   }
 
   // explain xyz
@@ -75,15 +73,13 @@ function extractTopic(text: string, fallback?: string): string {
   );
 
   if (explainMatch?.[1]) {
-    return explainMatch[1]
-      .replace(/[.?!]+$/, "")
-      .trim();
+    return cleanTopic(explainMatch[1]);
   }
 
   return fallback || cleaned;
 }
 
-function extractGrade(text: string, fallback = "6"): string {
+export function extractGrade(text: string, fallback = "6"): string {
   const m = text.match(/\b(?:class|grade|std|standard)\s*(\d{1,2})\b/i);
   return normalizeGrade(m ? m[1] : fallback);
 }
@@ -91,5 +87,13 @@ function extractGrade(text: string, fallback = "6"): string {
 function normalizeGrade(value: string): string {
   const grade = Number.parseInt(value.replace(/\D/g, ""), 10);
   return Number.isInteger(grade) && grade >= 1 && grade <= 12 ? String(grade) : "6";
+}
+
+function cleanTopic(value: string): string {
+  return value
+    .replace(/[.?!]+$/, "")
+    .replace(/\s+(?:to|for)\s+(?:class|grade|std|standard)\s*\d{1,2}(?:\s+(?:students?|children))?$/i, "")
+    .replace(/\s+(?:students?|children)$/i, "")
+    .trim();
 }
 
