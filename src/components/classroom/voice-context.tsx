@@ -398,7 +398,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       setIntent((p) => ({ ...p, transcript: text }));
 
       const local = detectLocalIntent(text);
-      let engineInput = text;
+      const engineInput = text;
       let engineIntent: TeachingResponse["intent"] | undefined;
 
       if (local === "quiz") {
@@ -410,7 +410,11 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       }
 
       setState("thinking");
-      const result = await engine.runEngine(engineInput, { intent: engineIntent });
+      const result = await engine.runEngine(engineInput, {
+        intent: engineIntent,
+        grade: settings.grade.replace(/\D/g, "") || "6",
+        language: settings.language,
+      });
       if (!result) {
         await speak("I could not generate a lesson. Please try again.");
         return;
@@ -437,7 +441,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       pushMessage("ai", spoken, result.intent);
       await speak(spoken);
     },
-    [buildSpeech, detectLocalIntent, engine, mode, pushCommand, pushMessage, speak],
+    [buildSpeech, detectLocalIntent, engine, mode, pushCommand, pushMessage, settings.grade, settings.language, speak],
   );
 
   const startListening = useCallback(async () => {

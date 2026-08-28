@@ -18,7 +18,7 @@ export function AIPlayground() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(SAMPLES[0]);
   const { runEngine, status, response, error } = useTeachingEngine();
-  const { speak, startListening, isListening, sttSupported } = useVoice();
+  const { speak, startListening, isListening, sttSupported, settings } = useVoice();
   const busy = status !== "idle" && status !== "done" && status !== "error";
 
   return (
@@ -65,7 +65,14 @@ export function AIPlayground() {
             <div className={cn("text-[11px]", error ? "text-destructive" : "text-muted-foreground")}>
               {error ? error : ENGINE_STATUS_LABEL[status]}
             </div>
-            <Button size="sm" disabled={busy || !text.trim()} onClick={() => runEngine(text.trim())}>
+            <Button
+              size="sm"
+              disabled={busy || !text.trim()}
+              onClick={() => void runEngine(text.trim(), {
+                grade: settings.grade.replace(/\D/g, "") || "6",
+                language: settings.language,
+              })}
+            >
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
               <span className="ml-1.5">Run</span>
             </Button>
