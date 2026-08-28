@@ -1,10 +1,34 @@
 import { Logo } from "./Logo";
 
 const COLS = [
-  { title: "Product", links: ["Features", "Smart Board Mode", "Voice Commands", "Roadmap"] },
-  { title: "For Schools", links: ["Pilot Programme", "Teacher Training", "NGO Partnerships", "Case Studies"] },
-  { title: "Company", links: ["About", "Mission", "Careers", "Contact"] },
-];
+  {
+    title: "Product",
+    links: [
+      { label: "Features", href: "/#features" },
+      { label: "Smart Board Mode", href: "/#smart-board" },
+      { label: "Voice Commands", href: "/#how" },
+      { label: "Roadmap", href: "/resources?topic=roadmap" },
+    ],
+  },
+  {
+    title: "For Schools",
+    links: [
+      { label: "Pilot Programme", href: "/resources?topic=pilot-programme" },
+      { label: "Teacher Training", href: "/resources?topic=teacher-training" },
+      { label: "NGO Partnerships", href: "/resources?topic=ngo-partnerships" },
+      { label: "Case Studies", href: "/resources?topic=case-studies" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About", href: "/resources?topic=about" },
+      { label: "Mission", href: "/resources?topic=mission" },
+      { label: "Careers", href: "/resources?topic=careers" },
+      { label: "Contact", href: "/resources?topic=contact" },
+    ],
+  },
+] as const;
 
 export function Footer() {
   return (
@@ -24,10 +48,10 @@ export function Footer() {
                 {col.title}
               </div>
               <ul className="mt-3 flex flex-col gap-2">
-                {col.links.map((l) => (
-                  <li key={l}>
-                    <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-                      {l}
+                {col.links.map((link) => (
+                  <li key={link.label}>
+                    <a href={link.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                      {link.label}
                     </a>
                   </li>
                 ))}

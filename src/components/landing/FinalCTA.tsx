@@ -21,11 +21,15 @@ export function FinalCTA() {
             Pilot ShikshaSathi AI in your school — teachers stay in charge, students stay engaged.
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-            <EduButton size="lg" variant="glass" className="bg-white text-foreground hover:bg-white">
-              <Rocket /> Launch Classroom
+            <EduButton asChild size="lg" variant="glass" className="bg-white text-foreground hover:bg-white">
+              <a href="/classroom">
+                <Rocket /> Launch Classroom
+              </a>
             </EduButton>
-            <EduButton size="lg" variant="glass">
-              Explore Features <ArrowRight />
+            <EduButton asChild size="lg" variant="glass">
+              <a href="#features">
+                Explore Features <ArrowRight />
+              </a>
             </EduButton>
           </div>
         </div>
