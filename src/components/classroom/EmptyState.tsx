@@ -1,13 +1,14 @@
 import { Mic } from "lucide-react";
+import { toast } from "sonner";
 import { useVoice } from "./voice-context";
 import learningImage from "@/assets/images/learning.png";
 
 const PROMPTS = [
-  { emoji: "🌱", text: "Explain Photosynthesis", prompt: "Explain photosynthesis to Class 6 students." },
-  { emoji: "💧", text: "Quiz on Water Cycle", prompt: "Generate a quiz on the water cycle for Class 5." },
-  { emoji: "🧠", text: "Group Activity", prompt: "Create a 10 minute group activity on the solar system." },
-  { emoji: "🔤", text: "Translate Paragraph", prompt: "Translate 'The sun gives us energy' to Hindi for Class 3." },
-  { emoji: "📖", text: "Summarize Chapter", prompt: "Summarize the Indian freedom movement for Class 8." },
+  { emoji: "🌱", text: "Explain Photosynthesis", prompt: "Explain photosynthesis to Class 6 students.", available: true },
+  { emoji: "💧", text: "Quiz on Water Cycle", prompt: "Generate a quiz on the water cycle for Class 5.", available: true },
+  { emoji: "🧠", text: "Group Activity", prompt: "", available: false },
+  { emoji: "🔤", text: "Translate Paragraph", prompt: "", available: false },
+  { emoji: "📖", text: "Summarize Chapter", prompt: "", available: false },
 ];
 
 export function EmptyState() {
@@ -35,7 +36,15 @@ export function EmptyState() {
         {PROMPTS.map((p) => (
           <button
             key={p.text}
-            onClick={() => void sendText(p.prompt)}
+            onClick={() => {
+              if (p.available) {
+                void sendText(p.prompt);
+              } else {
+                toast.info(`${p.text} is coming soon`, {
+                  description: "This starter will be enabled after its response format is added.",
+                });
+              }
+            }}
             className="group flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left text-sm font-bold text-foreground shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card"
           >
             <span className="text-2xl leading-none">{p.emoji}</span>
