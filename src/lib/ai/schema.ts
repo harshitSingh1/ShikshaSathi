@@ -68,6 +68,16 @@ export const teachingResponseSchema = z.object({
     .object({
       provider: z.enum(["gemini", "openrouter", "local"]).optional(),
       fallbackReason: z.string().optional(),
+      attempts: z
+        .array(
+          z.object({
+            provider: z.enum(["gemini", "openrouter", "local"]),
+            ok: z.boolean(),
+            error: z.string().optional(),
+            latencyMs: z.number().nonnegative(),
+          }),
+        )
+        .optional(),
     })
     .optional(),
 });
