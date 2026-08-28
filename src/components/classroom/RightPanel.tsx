@@ -78,13 +78,17 @@ function Disclosure({
 function ContextualActions() {
   const { mode } = useMode();
   const { sendText } = useVoice();
+  const { response } = useTeachingEngine();
+  const topic = response?.topic.trim();
+  if (!topic) return null;
+
   const followUps =
     mode === "quiz"
       ? [
-          { label: "Generate new quiz", prompt: "Generate a fresh quiz on this topic." },
-          { label: "Back to lesson", prompt: "Explain this concept again in simple Hinglish." },
+          { label: "Generate new quiz", prompt: `Generate a fresh quiz on "${topic}".` },
+          { label: "Back to lesson", prompt: `Explain "${topic}" again in simple language.` },
         ]
-      : [{ label: "Generate quiz", prompt: "Generate a 5 question quiz on this topic." }];
+      : [{ label: "Generate quiz", prompt: `Generate a 5-question quiz on "${topic}".` }];
   return (
     <section className="rounded-3xl border border-border/60 bg-card p-4 shadow-soft">
       <header className="mb-3 flex items-center gap-2">

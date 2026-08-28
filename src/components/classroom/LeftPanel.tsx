@@ -10,7 +10,6 @@ type Primary = {
   label: string;
   helper: string;
   icon: LucideIcon;
-  prompt: string;
   onSelect: (ctx: ReturnType<typeof useMode>) => void;
 };
 
@@ -19,21 +18,41 @@ const PRIMARY: Primary[] = [
     label: "Teach a Lesson",
     helper: "Explain any topic to class 1-12",
     icon: GraduationCap,
-    prompt: "Teach a short lesson on the topic I will tell you next.",
     onSelect: (m) => m.setMode("teaching"),
   },
   {
     label: "Practice Quiz",
     helper: "MCQs on the current lesson",
     icon: ClipboardList,
-    prompt: "Generate practice question quiz on this topic.",
     onSelect: (m) => m.enterQuiz(),
   },
 ];
 
 export function LeftPanel() {
   const modeCtx = useMode();
-  const { sendText } = useVoice();
+  const { sendText, intent } = useVoice();
+
+  const requestTopic = (label: string) => {
+    const topic = intent.topic.trim();
+    if (topic) {
+      const prompt = label === "Practice Quiz"
+        ? `Generate a 5-question quiz on "${topic}".`
+        : `Explain ${topic} in a classroom-ready lesson.`;
+      void sendText(prompt);
+      return;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("ss:open-type-input", {
+        detail: {
+          placeholder:
+            label === "Practice Quiz"
+              ? "Type a topic for your quiz…"
+              : "Type the topic you want to teach…",
+        },
+      }),
+    );
+  };
 
   return (
     <aside className="flex h-full flex-col gap-3 overflow-y-auto pr-1">
@@ -48,7 +67,7 @@ export function LeftPanel() {
             key={p.label}
             onClick={() => {
               p.onSelect(modeCtx);
-              void sendText(p.prompt);
+              requestTopic(p.label);
             }}
             className={cn(
               "group flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3.5 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card",
