@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as DebugRouteImport } from './routes/debug'
 import { Route as ClassroomRouteImport } from './routes/classroom'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicHealthDiagnosticsRouteImport } from './routes/api/public/health.diagnostics'
 import { Route as ApiPublicHealthAiRouteImport } from './routes/api/public/health.ai'
 
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DebugRoute = DebugRouteImport.update({
   id: '/debug',
   path: '/debug',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/classroom': typeof ClassroomRoute
   '/debug': typeof DebugRoute
+  '/resources': typeof ResourcesRoute
   '/api/public/health/ai': typeof ApiPublicHealthAiRoute
   '/api/public/health/diagnostics': typeof ApiPublicHealthDiagnosticsRoute
 }
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/classroom': typeof ClassroomRoute
   '/debug': typeof DebugRoute
+  '/resources': typeof ResourcesRoute
   '/api/public/health/ai': typeof ApiPublicHealthAiRoute
   '/api/public/health/diagnostics': typeof ApiPublicHealthDiagnosticsRoute
 }
@@ -61,6 +69,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/classroom': typeof ClassroomRoute
   '/debug': typeof DebugRoute
+  '/resources': typeof ResourcesRoute
   '/api/public/health/ai': typeof ApiPublicHealthAiRoute
   '/api/public/health/diagnostics': typeof ApiPublicHealthDiagnosticsRoute
 }
@@ -70,6 +79,7 @@ export interface FileRouteTypes {
     | '/'
     | '/classroom'
     | '/debug'
+    | '/resources'
     | '/api/public/health/ai'
     | '/api/public/health/diagnostics'
   fileRoutesByTo: FileRoutesByTo
@@ -77,6 +87,7 @@ export interface FileRouteTypes {
     | '/'
     | '/classroom'
     | '/debug'
+    | '/resources'
     | '/api/public/health/ai'
     | '/api/public/health/diagnostics'
   id:
@@ -84,6 +95,7 @@ export interface FileRouteTypes {
     | '/'
     | '/classroom'
     | '/debug'
+    | '/resources'
     | '/api/public/health/ai'
     | '/api/public/health/diagnostics'
   fileRoutesById: FileRoutesById
@@ -92,12 +104,20 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClassroomRoute: typeof ClassroomRoute
   DebugRoute: typeof DebugRoute
+  ResourcesRoute: typeof ResourcesRoute
   ApiPublicHealthAiRoute: typeof ApiPublicHealthAiRoute
   ApiPublicHealthDiagnosticsRoute: typeof ApiPublicHealthDiagnosticsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/debug': {
       id: '/debug'
       path: '/debug'
@@ -140,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClassroomRoute: ClassroomRoute,
   DebugRoute: DebugRoute,
+  ResourcesRoute: ResourcesRoute,
   ApiPublicHealthAiRoute: ApiPublicHealthAiRoute,
   ApiPublicHealthDiagnosticsRoute: ApiPublicHealthDiagnosticsRoute,
 }

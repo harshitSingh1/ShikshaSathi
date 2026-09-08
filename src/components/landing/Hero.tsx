@@ -26,11 +26,15 @@ export function Hero() {
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
-            <EduButton size="lg">
-              <Mic /> Start Teaching
+            <EduButton asChild size="lg">
+              <a href="/classroom">
+                <Mic /> Start Teaching
+              </a>
             </EduButton>
-            <EduButton size="lg" variant="secondary">
-              <Play /> Watch Demo
+            <EduButton asChild size="lg" variant="secondary">
+              <a href="#how">
+                <Play /> Watch Demo
+              </a>
             </EduButton>
           </div>
 

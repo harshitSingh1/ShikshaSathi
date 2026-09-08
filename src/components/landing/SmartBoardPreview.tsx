@@ -4,7 +4,7 @@ import { EduBadge } from "@/components/ui-edu/badge";
 
 export function SmartBoardPreview() {
   return (
-    <section className="bg-muted/40 py-20 md:py-28">
+    <section id="smart-board" className="bg-muted/40 py-20 md:py-28">
       <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-14 px-5 sm:px-8">
         <SectionHeader
           eyebrow="Smart Board Preview"
