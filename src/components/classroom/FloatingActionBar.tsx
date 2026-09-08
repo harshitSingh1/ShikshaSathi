@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, HelpCircle, House, Keyboard, Mic, Send, Square, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,17 @@ export function FloatingActionBar() {
   const { mode, setMode, enterQuiz, exitQuiz } = useMode();
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
+  const [inputPlaceholder, setInputPlaceholder] = useState("Ask ShikshaSathi anything…");
+
+  useEffect(() => {
+    const openTypeInput = (event: Event) => {
+      const customEvent = event as CustomEvent<{ placeholder?: string }>;
+      setInputPlaceholder(customEvent.detail?.placeholder ?? "Ask ShikshaSathi anything…");
+      setTyping(true);
+    };
+    window.addEventListener("ss:open-type-input", openTypeInput);
+    return () => window.removeEventListener("ss:open-type-input", openTypeInput);
+  }, []);
   const active = isListening || isSpeaking || state === "thinking";
 
   const submitDraft = () => {
@@ -34,7 +45,7 @@ export function FloatingActionBar() {
                 if (e.key === "Enter") submitDraft();
                 if (e.key === "Escape") setTyping(false);
               }}
-              placeholder="Ask ShikshaSathi anything…"
+              placeholder={inputPlaceholder}
               className="flex-1 bg-transparent py-3 text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground"
             />
             <button
@@ -125,7 +136,10 @@ export function FloatingActionBar() {
   label="Type"
   icon={Keyboard}
   highlighted={typing}
-  onClick={() => setTyping((v) => !v)}
+              onClick={() => {
+                setInputPlaceholder("Ask ShikshaSathi anything…");
+                setTyping((v) => !v);
+              }}
 />
       </div>
     </div>
