@@ -2,7 +2,7 @@ import { generateText } from "ai";
 
 import { createGeminiProvider, DEFAULT_TEXT_MODEL, classifyGeminiError } from "./gateway.server";
 import { buildTeachingPrompt, buildQuizPrompt } from "./prompts";
-import { teachingResponseSchema, type TeachingResponse } from "./schema";
+import { teachingResponseSchema, type LanguageValue, type TeachingResponse } from "./schema";
 import { synthFallback } from "./local-fallback";
 
 export type ProviderName = "gemini" | "openrouter" | "local";
@@ -96,8 +96,11 @@ export async function generateLessonJSON(
   topic: string,
   intent: "teaching" | "quiz",
   grade = "6",
+  language: LanguageValue = "Hinglish",
 ): Promise<LessonResult> {
-  const prompt = intent === "quiz" ? buildQuizPrompt(topic, grade) : buildTeachingPrompt(topic, grade);
+  const prompt = intent === "quiz"
+    ? buildQuizPrompt(topic, grade, language)
+    : buildTeachingPrompt(topic, grade, language);
   const attempts: LessonResult["attempts"] = [];
 
   // 1) Gemini
@@ -132,19 +135,15 @@ export async function generateLessonJSON(
     attempts.push({ provider: "openrouter", ok: false, error: "OPENROUTER_API_KEY missing", latencyMs: 0 });
   }
 
-  console.log("===============");
-console.log("QUIZ DEBUG");
-console.log("Topic:", topic);
-console.log("Intent:", intent);
-console.log("Grade:", grade);
-console.log("===============");
-
   // 3) Local
-  const data = synthFallback(topic, intent, grade);
+  const data = synthFallback(topic, intent, grade, language);
   return {
     data,
     provider: "local",
-    fallbackReason: attempts.find((a) => !a.ok)?.error ?? "no-providers-configured",
+    fallbackReason:
+      language === "Hinglish"
+        ? attempts.find((a) => !a.ok)?.error ?? "no-providers-configured"
+        : "offline-language-unsupported: local fallback is available in Hinglish only",
     attempts,
   };
 }

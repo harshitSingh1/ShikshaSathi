@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { generateLessonJSON } from "./providers";
-import type { TeachingResponse } from "./schema";
+import { LANGUAGES, type TeachingResponse } from "./schema";
 
 const InputSchema = z
   .object({
@@ -10,6 +10,7 @@ const InputSchema = z
     intent: z.enum(["teaching", "quiz"]).optional(),
     contextTopic: z.string().optional(),
     grade: z.string().optional(),
+    language: z.enum(LANGUAGES).optional(),
   })
   .passthrough();
 
@@ -33,17 +34,9 @@ if (intent === "quiz") {
 } else {
   topic = extractTopic(data.input, data.contextTopic);
 }
-    const grade = data.grade ?? extractGrade(data.input);
-    console.log("========== TOPIC DEBUG ==========");
-console.log("INPUT:", data.input);
-console.log("CONTEXT:", data.contextTopic);
-
-const extracted = extractTopic(data.input);
-
-console.log("EXTRACTED:", extracted);
-
-console.log("================================");
-    const result = await generateLessonJSON(topic, intent, grade);
+    const grade = normalizeGrade(data.grade ?? extractGrade(data.input));
+    const language = data.language ?? "Hinglish";
+    const result = await generateLessonJSON(topic, intent, grade, language);
     console.info("[teaching-engine]", {
       topic,
       grade,
@@ -92,6 +85,11 @@ function extractTopic(text: string, fallback?: string): string {
 
 function extractGrade(text: string, fallback = "6"): string {
   const m = text.match(/\b(?:class|grade|std|standard)\s*(\d{1,2})\b/i);
-  return m ? m[1] : fallback;
+  return normalizeGrade(m ? m[1] : fallback);
+}
+
+function normalizeGrade(value: string): string {
+  const grade = Number.parseInt(value.replace(/\D/g, ""), 10);
+  return Number.isInteger(grade) && grade >= 1 && grade <= 12 ? String(grade) : "6";
 }
 

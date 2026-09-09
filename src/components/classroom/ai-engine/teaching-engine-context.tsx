@@ -2,11 +2,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useServerFn } from "@tanstack/react-start";
 
 import { generateTeachingResponse } from "@/lib/ai/teaching-engine.functions";
-import type { TeachingResponse } from "@/lib/ai/schema";
+import type { LanguageValue, TeachingResponse } from "@/lib/ai/schema";
 
 export type EngineHints = {
   grade?: string;
-  language?: string;
+  language?: LanguageValue;
   intent?: TeachingResponse["intent"];
 };
 
@@ -150,6 +150,8 @@ export function TeachingEngineProvider({ children }: { children: React.ReactNode
             input,
             intent: hints?.intent,
             contextTopic: ref.current.topic ?? undefined,
+            grade: hints?.grade,
+            language: hints?.language,
           },
         });
         setStatus("preparing");

@@ -1,4 +1,4 @@
-import type { TeachingResponse, LessonContent } from "./schema";
+import type { LanguageValue, TeachingResponse, LessonContent } from "./schema";
 
 /** Offline lesson + quiz generator with rich classroom templates. */
 
@@ -638,14 +638,15 @@ function pick(topic: string, grade: string): Template {
   return TEMPLATES.find((t) => t.match.test(topic)) ?? genericTemplate(topic, grade);
 }
 
-export function synthTeaching(topic: string, grade = "6"): TeachingResponse {
+export function synthTeaching(topic: string, grade = "6", requestedLanguage: LanguageValue = "Hinglish"): TeachingResponse {
   const t = pick(topic, grade);
+  const language = resolveOfflineLanguage(requestedLanguage);
   return {
     intent: "teaching",
     topic,
     subject: t.subject,
     grade,
-    language: "Hinglish",
+    language,
     theme: t.theme,
     visualType: "flowchart",
     lesson: t.lesson,
@@ -654,14 +655,15 @@ export function synthTeaching(topic: string, grade = "6"): TeachingResponse {
   };
 }
 
-export function synthQuiz(topic: string, grade = "6"): TeachingResponse {
+export function synthQuiz(topic: string, grade = "6", requestedLanguage: LanguageValue = "Hinglish"): TeachingResponse {
   const t = pick(topic, grade);
+  const language = resolveOfflineLanguage(requestedLanguage);
   return {
     intent: "quiz",
     topic,
     subject: t.subject,
     grade,
-    language: "Hinglish",
+    language,
     theme: t.theme,
     visualType: "flowchart",
     lesson: null,
@@ -670,7 +672,7 @@ export function synthQuiz(topic: string, grade = "6"): TeachingResponse {
       title: `${topic} — Quiz`,
       topic,
       klass: grade,
-      language: "Hinglish",
+      language,
       questions: t.quiz.map((q) => ({
         question: q.question,
         options: q.options as unknown as string[],
@@ -683,6 +685,17 @@ export function synthQuiz(topic: string, grade = "6"): TeachingResponse {
   };
 }
 
-export function synthFallback(topic: string, intent: "teaching" | "quiz", grade = "6"): TeachingResponse {
-  return intent === "quiz" ? synthQuiz(topic, grade) : synthTeaching(topic, grade);
+function resolveOfflineLanguage(_requestedLanguage: LanguageValue): LanguageValue {
+  return "Hinglish";
+}
+
+export function synthFallback(
+  topic: string,
+  intent: "teaching" | "quiz",
+  grade = "6",
+  language: LanguageValue = "Hinglish",
+): TeachingResponse {
+  return intent === "quiz"
+    ? synthQuiz(topic, grade, language)
+    : synthTeaching(topic, grade, language);
 }
