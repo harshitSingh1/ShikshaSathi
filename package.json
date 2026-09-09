@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "start": "node dist/server/server.js",
+    "start": "nitro preview",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

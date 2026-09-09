@@ -104,7 +104,7 @@ The result is a fully self-contained, high-quality teaching session — zero pre
 | **Voice** | ElevenLabs REST API, Web Speech API (SpeechRecognition + SpeechSynthesis) |
 | **State** | React Context (Voice, Narration, Mode, Teaching Engine), React Query (TanStack Query) |
 | **Forms** | React Hook Form + Zod |
-| **Deployment** | Vercel (`dist/client` SPA fallback rewrites) |
+| **Deployment** | Vercel via the Nitro preset (`.vercel/output`) |
 
 ---
 
@@ -244,8 +244,8 @@ src/
 1. **Input Capture** — Teacher speaks via Web Speech API (or clicks a shortcut, or types in `FloatingActionBar`)
 2. **Local Intent Detection** — Regex matching for keywords (`quiz`, `mcq`, `question`, `test`) determines `teaching` vs. `quiz`
 3. **Topic Extraction** — Regex strips prefixes like "Explain", "Quiz on", "Teach" and extracts the core subject; grade is parsed from "Class 7" / "Grade 6" patterns
-4. **Server Function Call** — `generateTeachingResponse` serverFn receives `{ input, intent, contextTopic, grade }` via TanStack Start
-5. **Prompt Construction** — `buildTeachingPrompt` or `buildQuizPrompt` wraps the topic in grade-band-aware Hinglish constraints (word counts, example requirements, banned generic phrases)
+4. **Server Function Call** — `generateTeachingResponse` serverFn receives `{ input, intent, contextTopic, grade, language }` via TanStack Start
+5. **Prompt Construction** — `buildTeachingPrompt` or `buildQuizPrompt` wraps the topic in grade-band-aware language constraints (English, Hindi, or Hinglish), word counts, example requirements, and banned generic phrases
 6. **Provider Chain Execution** — `generateLessonJSON` attempts Gemini → OpenRouter → Local template; each attempt is logged with `{ provider, ok, error, latencyMs }`
 7. **Schema Validation** — Raw JSON is stripped of code fences, merged with `intent`, and validated against `teachingResponseSchema` via Zod
 8. **Context Merge** — Client merges result into `classroomContext`; topic changes clear prior lesson/quiz to prevent stale data
@@ -259,7 +259,8 @@ src/
 
 **Teaching Prompts (`buildTeachingPrompt`)**
 
-The prompt enforces a strict Hinglish (Roman script) output with:
+The prompt enforces a strict language-specific output with:
+- English output in clear age-appropriate English, Hindi output in Devanagari with necessary academic English terms, or Hinglish output in Roman script
 - Grade-band word count: 150–250 (Class 1–3), 300–500 (Class 4–6), 500–800 (Class 7–10), 800–1200 (Class 11–12)
 - 13 required fields: `hook`, `concept`, `whyItMatters`, `keyPoints`, `subtopics`, `examples`, `mistakes`, `classroomQuestion`, `activity`, `summary`, `teacherScript`, `studentQuestions`, `expectedAnswers`
 - Hard constraints: NO generic phrases ("important topic", "basic ideas", "concept", "how it works"); visual steps MUST be 4–6 REAL conceptual stages of the topic
@@ -270,7 +271,7 @@ The prompt enforces a strict Hinglish (Roman script) output with:
 Simplified but strict:
 - Exactly 5 MCQs
 - Each with 4 plausible options, `correctAnswer` matching an option EXACTLY (case-sensitive)
-- `explanation` field per question in Hinglish
+- `explanation` field per question in the selected language
 - Default difficulty: `easy`
 
 **Local Fallback Templates**
@@ -327,7 +328,7 @@ Open `http://localhost:3000`.
 npm run build
 ```
 
-Build output is written to `dist/client`.
+Build output is written to `.vercel/output` by the Nitro Vercel preset.
 
 ## Preview
 
@@ -343,27 +344,19 @@ npm run lint
 
 ## Deployment
 
-ShikshaSathi is optimized for **Vercel**. The `vercel.json` config already specifies:
-
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/client",
-  "framework": null,
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
-}
-```
+ShikshaSathi is optimized for **Vercel** through the Nitro Vercel preset in `vite.config.ts`. No additional `vercel.json` file is required for the current build configuration.
 
 **Deploy steps:**
 
-1. Push to GitHub
-2. Import repo in Vercel
-3. Add environment variables (`GOOGLE_API_KEY`, `ELEVENLABS_API_KEY`, optionally `OPENROUTER_API_KEY`)
-4. Click Deploy
+1. Push to GitHub.
+2. Import the repository in Vercel.
+3. Add environment variables (`GOOGLE_API_KEY`, `ELEVENLABS_API_KEY`, optionally `OPENROUTER_API_KEY`).
+4. Keep the detected Vite build settings and deploy.
 
 **TanStack Start notes:**
-- The build produces an SSR server bundle and a client bundle; Vercel's SPA fallback rewrite ensures all routes resolve to `dist/client`
-- For self-hosted deployment, run `npm run build` then `node dist/server/server.js`
+- The build produces Vercel/Nitro output under `.vercel/output`, including the server function and static assets.
+- For a local production preview, run `npm run build` and then `npm run start`.
+- The `start` script uses `nitro preview`, which serves the generated `.vercel/output` build. Vercel deployments should use the same generated output rather than a `dist/server/server.js` path.
 
 ---
 
