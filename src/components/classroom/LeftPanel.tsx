@@ -1,10 +1,14 @@
-import { ChevronDown, ClipboardList, GraduationCap, History } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, ChevronDown, ClipboardList, GraduationCap, HardDrive, History } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMode } from "./mode-context";
 import { useVoice } from "./voice-context";
+import { useTeachingEngine } from "./ai-engine/teaching-engine-context";
 import { QuizHistoryCard } from "./quiz/QuizHistoryCard";
 import { SessionMemoryCard } from "./ai-engine/AIUnderstandingEngine";
+import { NCERTNavigator } from "./curriculum/NCERTNavigator";
+import { OfflineLibraryModal } from "./OfflineLibraryModal";
 
 type Primary = {
   label: string;
@@ -31,13 +35,16 @@ const PRIMARY: Primary[] = [
 export function LeftPanel() {
   const modeCtx = useMode();
   const { sendText, intent } = useVoice();
+  const { loadDirectResponse } = useTeachingEngine();
+  const [showOfflineLibrary, setShowOfflineLibrary] = useState(false);
 
   const requestTopic = (label: string) => {
     const topic = intent.topic.trim();
     if (topic) {
-      const prompt = label === "Practice Quiz"
-        ? `Generate a 5-question quiz on "${topic}".`
-        : `Explain ${topic} in a classroom-ready lesson.`;
+      const prompt =
+        label === "Practice Quiz"
+          ? `Generate a 5-question quiz on "${topic}".`
+          : `Explain ${topic} in a classroom-ready lesson.`;
       void sendText(prompt);
       return;
     }
@@ -58,9 +65,11 @@ export function LeftPanel() {
     <aside className="flex h-full flex-col gap-3 overflow-y-auto pr-1">
       <div className="mb-1 px-1">
         <h2 className="font-display text-sm font-extrabold uppercase tracking-[0.16em] text-muted-foreground">
-          What would you like to do?
+          Classroom Actions
         </h2>
       </div>
+
+      {/* Primary Actions */}
       <div className="flex flex-col gap-2">
         {PRIMARY.map((p) => (
           <button
@@ -83,9 +92,34 @@ export function LeftPanel() {
             <span className="text-muted-foreground transition-transform group-hover:translate-x-0.5">→</span>
           </button>
         ))}
+
+        {/* Offline Library Trigger Button */}
+        <button
+          onClick={() => setShowOfflineLibrary(true)}
+          className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-card"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+            <HardDrive className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <span className="block truncate font-display text-xs font-bold text-foreground">
+              Offline Library & USB Pack
+            </span>
+            <span className="block truncate text-[10px] text-muted-foreground">
+              Teach saved lessons without internet
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5">→</span>
+        </button>
       </div>
 
-      <details className="group mt-2 rounded-2xl border border-border/60 bg-card shadow-soft">
+      {/* NCERT Syllabus Navigator */}
+      <div className="mt-1">
+        <NCERTNavigator />
+      </div>
+
+      {/* Classroom History Collapsible */}
+      <details className="group mt-1 rounded-2xl border border-border/60 bg-card shadow-soft">
         <summary className="flex cursor-pointer list-none items-center gap-2 rounded-2xl px-3.5 py-3 text-sm font-bold text-foreground">
           <span className="grid h-7 w-7 place-items-center rounded-lg bg-muted text-muted-foreground">
             <History className="h-3.5 w-3.5" />
@@ -98,6 +132,16 @@ export function LeftPanel() {
           <SessionMemoryCard />
         </div>
       </details>
+
+      {/* Offline Library Modal */}
+      {showOfflineLibrary && (
+        <OfflineLibraryModal
+          onLoadLesson={(data) => {
+            loadDirectResponse(data);
+          }}
+          onClose={() => setShowOfflineLibrary(false)}
+        />
+      )}
     </aside>
   );
 }

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { generateLessonJSON } from "./providers";
-import type { TeachingResponse } from "./schema";
+import { LANGUAGES, type LanguageValue, type TeachingResponse } from "./schema";
 
 const InputSchema = z
   .object({
@@ -10,43 +10,30 @@ const InputSchema = z
     intent: z.enum(["teaching", "quiz"]).optional(),
     contextTopic: z.string().optional(),
     grade: z.string().optional(),
+    language: z.enum(LANGUAGES).optional(),
   })
   .passthrough();
+
+function isGenericQuizRequest(text: string): boolean {
+  return /^(quiz|generate quiz|start quiz|mcq|test)$/i.test(text.trim());
+}
 
 export const generateTeachingResponse = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }): Promise<TeachingResponse> => {
-    const intent: "teaching" | "quiz" =
-  data.intent ?? detectIntent(data.input);
+    const intent: "teaching" | "quiz" = data.intent ?? detectIntent(data.input);
+    const topic =
+      intent === "quiz" && isGenericQuizRequest(data.input)
+        ? data.contextTopic || "General"
+        : extractTopic(data.input, data.contextTopic);
+    const grade = normalizeGrade(data.grade ?? extractGrade(data.input));
+    const language: LanguageValue = data.language ?? "Hinglish";
 
-  function isGenericQuizRequest(text: string) {
-    return /^(quiz|generate quiz|start quiz|mcq|test)$/i.test(
-      text.trim()
-    );
-  }
-  let topic: string;
-
-if (intent === "quiz") {
-  topic = isGenericQuizRequest(data.input)
-    ? data.contextTopic || "General"
-    : extractTopic(data.input, data.contextTopic);
-} else {
-  topic = extractTopic(data.input, data.contextTopic);
-}
-    const grade = data.grade ?? extractGrade(data.input);
-    console.log("========== TOPIC DEBUG ==========");
-console.log("INPUT:", data.input);
-console.log("CONTEXT:", data.contextTopic);
-
-const extracted = extractTopic(data.input);
-
-console.log("EXTRACTED:", extracted);
-
-console.log("================================");
-    const result = await generateLessonJSON(topic, intent, grade);
+    const result = await generateLessonJSON(topic, intent, grade, language);
     console.info("[teaching-engine]", {
       topic,
       grade,
+      language,
       intent,
       provider: result.provider,
       fallbackReason: result.fallbackReason,
@@ -56,42 +43,44 @@ console.log("================================");
       _meta: { provider: result.provider, fallbackReason: result.fallbackReason },
     };
   });
-  
 
-function detectIntent(t: string): "teaching" | "quiz" {
+export function detectIntent(t: string): "teaching" | "quiz" {
   return /\b(quiz|mcq|question|test)\b/i.test(t) ? "quiz" : "teaching";
 }
 
-function extractTopic(text: string, fallback?: string): string {
+export function extractTopic(text: string, fallback?: string): string {
   const cleaned = text.trim().replace(/^["']|["']$/g, "");
 
   // quiz on xyz
-  const quizMatch = cleaned.match(
-    /(?:quiz|mcq|test)\s+(?:on|about)\s+(.+)/i
-  );
-
+  const quizMatch = cleaned.match(/(?:quiz|mcq|test)\s+(?:on|about)\s+(.+)/i);
   if (quizMatch?.[1]) {
-    return quizMatch[1]
-      .replace(/[.?!]+$/, "")
-      .trim();
+    return cleanTopic(quizMatch[1]);
   }
 
   // explain xyz
-  const explainMatch = cleaned.match(
-    /(?:explain|teach)\s+(.+)/i
-  );
-
+  const explainMatch = cleaned.match(/(?:explain|teach)\s+(.+)/i);
   if (explainMatch?.[1]) {
-    return explainMatch[1]
-      .replace(/[.?!]+$/, "")
-      .trim();
+    return cleanTopic(explainMatch[1]);
   }
 
-  return fallback || cleaned;
+  return cleanTopic(fallback || cleaned);
 }
 
-function extractGrade(text: string, fallback = "6"): string {
+export function extractGrade(text: string, fallback = "6"): string {
   const m = text.match(/\b(?:class|grade|std|standard)\s*(\d{1,2})\b/i);
-  return m ? m[1] : fallback;
+  return normalizeGrade(m ? m[1] : fallback);
 }
 
+export function normalizeGrade(value: string): string {
+  const grade = Number.parseInt(value.replace(/\D/g, ""), 10);
+  return Number.isInteger(grade) && grade >= 1 && grade <= 12 ? String(grade) : "6";
+}
+
+function cleanTopic(value: string): string {
+  return value
+    .replace(/[.?!]+$/, "")
+    .replace(/\s+(?:to|for)\s+(?:class|grade|std|standard)\s*\d{1,2}(?:\s+(?:students?|children))?$/i, "")
+    .replace(/\s+(?:students?|children)$/i, "")
+    .replace(/^["']|["']$/g, "")
+    .trim();
+}

@@ -2,7 +2,7 @@ import { generateText } from "ai";
 
 import { createGeminiProvider, DEFAULT_TEXT_MODEL, classifyGeminiError } from "./gateway.server";
 import { buildTeachingPrompt, buildQuizPrompt } from "./prompts";
-import { teachingResponseSchema, type TeachingResponse } from "./schema";
+import { teachingResponseSchema, type LanguageValue, type TeachingResponse } from "./schema";
 import { synthFallback } from "./local-fallback";
 
 export type ProviderName = "gemini" | "openrouter" | "local";
@@ -96,8 +96,9 @@ export async function generateLessonJSON(
   topic: string,
   intent: "teaching" | "quiz",
   grade = "6",
+  language: LanguageValue = "Hinglish",
 ): Promise<LessonResult> {
-  const prompt = intent === "quiz" ? buildQuizPrompt(topic, grade) : buildTeachingPrompt(topic, grade);
+  const prompt = intent === "quiz" ? buildQuizPrompt(topic, grade, language) : buildTeachingPrompt(topic, grade, language);
   const attempts: LessonResult["attempts"] = [];
 
   // 1) Gemini

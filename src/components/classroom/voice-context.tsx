@@ -12,7 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { synthesizeSpeech } from "@/lib/ai/voice.functions";
 import { useMode } from "./mode-context";
 import { useTeachingEngine } from "./ai-engine/teaching-engine-context";
-import type { TeachingResponse } from "@/lib/ai/schema";
+import type { TeachingResponse, LanguageValue } from "@/lib/ai/schema";
 
 export type VoiceState = "ready" | "listening" | "thinking" | "speaking";
 
@@ -39,7 +39,7 @@ export type VoiceMessage = {
 };
 
 export type VoiceSpeed = "slow" | "normal" | "fast";
-export type VoiceLanguage = "English" | "Hindi" | "Hinglish";
+export type VoiceLanguage = LanguageValue;
 export type VoiceStyle = "teacher" | "friendly" | "energetic";
 export type VoiceGender = "female" | "male";
 
@@ -88,8 +88,28 @@ function cacheSet(k: string, v: string) {
 }
 
 const SPEED_VALUES: Record<VoiceSpeed, number> = { slow: 0.85, normal: 1.0, fast: 1.15 };
-const TTS_LANG: Record<VoiceLanguage, string> = { English: "en-IN", Hindi: "hi-IN", Hinglish: "en-IN" };
-const STT_LANG: Record<VoiceLanguage, string> = { English: "en-IN", Hindi: "hi-IN", Hinglish: "en-IN" };
+const TTS_LANG: Record<VoiceLanguage, string> = {
+  English: "en-IN",
+  Hindi: "hi-IN",
+  Hinglish: "en-IN",
+  Telugu: "te-IN",
+  Tamil: "ta-IN",
+  Marathi: "mr-IN",
+  Bengali: "bn-IN",
+  Kannada: "kn-IN",
+  Gujarati: "gu-IN",
+};
+const STT_LANG: Record<VoiceLanguage, string> = {
+  English: "en-IN",
+  Hindi: "hi-IN",
+  Hinglish: "en-IN",
+  Telugu: "te-IN",
+  Tamil: "ta-IN",
+  Marathi: "mr-IN",
+  Bengali: "bn-IN",
+  Kannada: "kn-IN",
+  Gujarati: "gu-IN",
+};
 
 function speakWithBrowser(text: string, language: VoiceLanguage, rate: number, onDone: () => void) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return onDone();
@@ -410,7 +430,11 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       }
 
       setState("thinking");
-      const result = await engine.runEngine(engineInput, { intent: engineIntent });
+      const result = await engine.runEngine(engineInput, {
+        intent: engineIntent,
+        grade: settings.grade,
+        language: settings.language,
+      });
       if (!result) {
         await speak("I could not generate a lesson. Please try again.");
         return;
