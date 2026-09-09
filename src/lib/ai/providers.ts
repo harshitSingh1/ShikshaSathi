@@ -133,19 +133,15 @@ export async function generateLessonJSON(
     attempts.push({ provider: "openrouter", ok: false, error: "OPENROUTER_API_KEY missing", latencyMs: 0 });
   }
 
-  console.log("===============");
-console.log("QUIZ DEBUG");
-console.log("Topic:", topic);
-console.log("Intent:", intent);
-console.log("Grade:", grade);
-console.log("===============");
-
   // 3) Local
-  const data = synthFallback(topic, intent, grade);
+  const data = synthFallback(topic, intent, grade, language);
   return {
     data,
     provider: "local",
-    fallbackReason: attempts.find((a) => !a.ok)?.error ?? "no-providers-configured",
+    fallbackReason:
+      language === "Hinglish"
+        ? attempts.find((a) => !a.ok)?.error ?? "no-providers-configured"
+        : "offline-language-unsupported: local fallback is available in Hinglish only",
     attempts,
   };
 }

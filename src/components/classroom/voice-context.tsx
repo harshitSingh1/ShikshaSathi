@@ -418,7 +418,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       setIntent((p) => ({ ...p, transcript: text }));
 
       const local = detectLocalIntent(text);
-      let engineInput = text;
+      const engineInput = text;
       let engineIntent: TeachingResponse["intent"] | undefined;
 
       if (local === "quiz") {
@@ -461,7 +461,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       pushMessage("ai", spoken, result.intent);
       await speak(spoken);
     },
-    [buildSpeech, detectLocalIntent, engine, mode, pushCommand, pushMessage, speak],
+    [buildSpeech, detectLocalIntent, engine, mode, pushCommand, pushMessage, settings.grade, settings.language, speak],
   );
 
   const startListening = useCallback(async () => {

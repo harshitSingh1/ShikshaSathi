@@ -7,7 +7,7 @@ import { saveOfflineLesson } from "@/lib/storage/offline-library";
 
 export type EngineHints = {
   grade?: string;
-  language?: string;
+  language?: LanguageValue;
   intent?: TeachingResponse["intent"];
 };
 
@@ -154,6 +154,8 @@ export function TeachingEngineProvider({ children }: { children: React.ReactNode
             grade: hints?.grade,
             language: hints?.language as any,
             contextTopic: ref.current.topic ?? undefined,
+            grade: hints?.grade,
+            language: hints?.language,
           },
         });
         setStatus("preparing");

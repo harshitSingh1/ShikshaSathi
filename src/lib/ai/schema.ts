@@ -88,4 +88,5 @@ export type QuizContent = z.infer<typeof quizSchema>;
 export type VisualContent = z.infer<typeof visualSchema>;
 export type Subtopic = z.infer<typeof subtopicSchema>;
 export type IntentValue = (typeof INTENT_VALUES)[number];
+export type LanguageValue = (typeof LANGUAGES)[number];
 export type ThemeValue = (typeof THEMES)[number];
