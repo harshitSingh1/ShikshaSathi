@@ -165,7 +165,14 @@ export function TeachingEngineProvider({ children }: { children: React.ReactNode
         setResponse(ctxToResponse(next, result.intent));
         saveOfflineLesson(result);
         const meta = (result as any)._meta ?? {};
-        setLastDebug({ ok: true, intent: result.intent, topic: result.topic, provider: meta.provider, fallbackReason: meta.fallbackReason });
+        setLastDebug({
+          ok: true,
+          intent: result.intent,
+          topic: result.topic,
+          provider: meta.provider,
+          fallbackReason: meta.fallbackReason,
+          attempts: meta.attempts,
+        });
         if (typeof window !== "undefined") {
           try {
             if (meta.provider) localStorage.setItem("ss-last-ai-provider", String(meta.provider));

@@ -1,16 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-type Diagnostics = {
-  ok: boolean;
-  activeAIProvider: "gemini" | "openrouter" | "local";
-  providers: {
-    gemini: { configured: boolean; ok: boolean; latencyMs: number; error?: string };
-    openrouter: { configured: boolean; ok: boolean; latencyMs: number; error?: string };
-    elevenlabs: { configured: boolean };
-  };
-  ts: number;
-};
+type Diagnostics =
+  | {
+      ok: true;
+      enabled: true;
+      activeAIProvider: "gemini" | "openrouter" | "local";
+      providers: {
+        gemini: { configured: boolean; ok: boolean; latencyMs: number; error?: string };
+        openrouter: { configured: boolean; ok: boolean; latencyMs: number; error?: string };
+        elevenlabs: { configured: boolean };
+      };
+      ts: number;
+    }
+  | { ok: true; enabled: false; message: string; ts: number };
 
 export const Route = createFileRoute("/debug")({
   head: () => ({ meta: [{ title: "Diagnostics — ShikshaSathi" }] }),
@@ -86,7 +89,7 @@ function DebugPage() {
           </button>
         </div>
 
-        {diag ? (
+        {diag ? diag.enabled ? (
           <>
             <Row
               label="Gemini (Google)"
@@ -124,6 +127,8 @@ function DebugPage() {
               <div><strong>Last fallback reason:</strong> {lastClient.reason ?? "—"}</div>
             </div>
           </>
+        ) : (
+          <p className="py-6 text-sm text-muted-foreground">{diag.message}</p>
         ) : (
           <p className="py-6 text-sm text-muted-foreground">{loading ? "Loading…" : "No data."}</p>
         )}
