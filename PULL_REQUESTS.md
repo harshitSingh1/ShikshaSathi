@@ -18,19 +18,34 @@
 
 | Metric | Count | Details & Direct URLs |
 |---|:---:|---|
-| **Total PRs on Upstream Repository** | **4** | **4 MERGED (100% Merge Rate)** |
-| **Total PRs Pushed by SriRamkunamsetty** | **2** | **2 MERGED (PR #6 & PR #7)** |
-| **Additional Prepared Branches on Fork** | **6** | `pr/03` through `pr/08` (Staged & verified) |
-| **Total Issues on Upstream Tracker** | **2** | **2 CLOSED** (Issue #1 & Issue #4) |
+| **Total PRs on Upstream Repository** | **5** | **4 MERGED, 1 OPEN** |
+| **Total PRs Pushed by SriRamkunamsetty** | **3** | **2 MERGED (PR #6, PR #7), 1 OPEN (PR #9)** |
+| **Phase 2 Feature Branch on Fork** | **1** | `feat/classroom-smartboard-suite` (Committed & pushed) |
+| **Total Issues on Upstream Tracker** | **3** | **2 CLOSED, 1 OPEN** (Issue #8) |
 
 ### Status Breakdown of Your PRs
 - 🟣 **Merged PRs:** 2 (PR #6, PR #7 — both reviewed and merged by maintainer `harshitSingh1`)
-- 🟢 **Open PRs:** 0 (Ready to raise next issue for `pr/03-language-grade`)
+- 🟢 **Open PRs:** 1 (PR #9 — https://github.com/harshitSingh1/ShikshaSathi/pull/9)
 - 🔴 **Closed/Rejected PRs:** 0
 
 ---
 
 ## 🔗 Contributor Pull Requests (IEEE Criteria Format & Full URLs)
+
+### Pull Request #9 (CURRENTLY OPEN)
+- **🔗 Pull Request Number & Link:** PR #9 — https://github.com/harshitSingh1/ShikshaSathi/pull/9
+- **🎯 Issue Number Solved:** Fixes Issue #8 — https://github.com/harshitSingh1/ShikshaSathi/issues/8 (*"fix: Propagate selected language and grade to AI teaching engine"*)
+- **📅 Date Pushed:** September 9, 2026 (`2026-09-09T01:41:43Z`)
+- **⚡ Status:** **OPEN** (Ready for maintainer review & merge, 0 merge conflicts)
+- **🌿 Source Branch:** `SriRamkunamsetty:pr/03-language-grade` — https://github.com/SriRamkunamsetty/ShikshaSathi/tree/pr/03-language-grade
+- **📝 Short summary of the work done:**
+  - Resolved bug where UI TopBar language switch and grade selector were ignored by the backend AI teaching engine, which was hardcoded to Hinglish and Class 6.
+  - Added `language` and grade normalization to `src/lib/ai/teaching-engine.functions.ts`.
+  - Updated `voice-context.tsx` and `AIPlayground.tsx` to forward active language and grade to `runEngine`.
+  - Updated `prompts.ts` with language script directives and grade bands.
+  - Passed production build (`npm run build` exits code 0).
+
+---
 
 ### Pull Request #6
 - **🔗 Pull Request Number & Link:** PR #6 — https://github.com/harshitSingh1/ShikshaSathi/pull/6
