@@ -1,7 +1,9 @@
-import { CheckCircle2, Clock, RefreshCcw, Trophy, XCircle } from "lucide-react";
+import { useEffect } from "react";
+import { CheckCircle2, Clock, RefreshCcw, Swords, Trophy, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTeachingEngine } from "../ai-engine/teaching-engine-context";
 import { useMode } from "../mode-context";
+import { soundEffects } from "@/lib/audio/sound-effects";
 
 function formatDuration(ms: number): string {
   if (!ms || ms < 0) return "0s";
@@ -14,9 +16,13 @@ function formatDuration(ms: number): string {
 
 export function QuizAnalytics({ big, onRestart }: { big: boolean; onRestart: () => void }) {
   const { response } = useTeachingEngine();
-  const { userAnswers, quizStartedAt, quizFinishedAt } = useMode();
+  const { userAnswers, quizStartedAt, quizFinishedAt, quizSettings } = useMode();
   const topic = response?.quiz?.topic ?? response?.topic ?? "Quiz";
   const questions = response?.quiz?.questions ?? [];
+
+  useEffect(() => {
+    soundEffects.playFanfare();
+  }, []);
 
   if (!questions.length) {
     return (
@@ -31,6 +37,7 @@ export function QuizAnalytics({ big, onRestart }: { big: boolean; onRestart: () 
     );
   }
 
+  const isTeam = quizSettings.teamMode;
   const total = questions.length;
   const correctCount = userAnswers.filter((a) => a.isCorrect).length;
   const incorrectCount = Math.max(0, userAnswers.length - correctCount);
@@ -41,30 +48,84 @@ export function QuizAnalytics({ big, onRestart }: { big: boolean; onRestart: () 
       ? quizFinishedAt - quizStartedAt
       : 0;
 
+  const teamAScore = questions.reduce((acc, q, i) => {
+    if (i % 2 === 0) {
+      const ans = userAnswers.find((a) => a.questionId === `q${i + 1}`);
+      return ans?.isCorrect ? acc + 10 : acc;
+    }
+    return acc;
+  }, 0);
+
+  const teamBScore = questions.reduce((acc, q, i) => {
+    if (i % 2 !== 0) {
+      const ans = userAnswers.find((a) => a.questionId === `q${i + 1}`);
+      return ans?.isCorrect ? acc + 10 : acc;
+    }
+    return acc;
+  }, 0);
+
+  const winner = teamAScore > teamBScore ? "A" : teamBScore > teamAScore ? "B" : "tie";
+
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5 animate-fade-in">
-      {/* Personal Result Header */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-primary p-6 text-white shadow-float sm:p-7">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/15 blur-3xl" />
-        <div className="relative flex flex-wrap items-center justify-between gap-5">
-          <div>
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/85">
-              <Trophy className="h-3.5 w-3.5" /> Quiz Completed · {topic}
+      {/* Result Header */}
+      {isTeam ? (
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 p-6 text-white shadow-float sm:p-7">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/15 blur-3xl" />
+          <div className="relative flex flex-col gap-4">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/90">
+              <Swords className="h-4 w-4 text-yellow-300" /> Classroom Team Battle Completed · {topic}
             </div>
-            <h1 className={cn("mt-1 font-display font-extrabold tracking-tight", big ? "text-5xl" : "text-3xl sm:text-4xl")}>
-              Score · {correctCount} / {total}
-            </h1>
-            <p className="mt-1 max-w-md text-sm text-white/85">
-              Your personal result · review every question and explanation below.
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h1 className={cn("font-display font-extrabold tracking-tight", big ? "text-5xl" : "text-3xl sm:text-4xl")}>
+                  {winner === "A" && "🏆 Team A (Blue Lions) Wins! 🦁"}
+                  {winner === "B" && "🏆 Team B (Orange Tigers) Wins! 🐯"}
+                  {winner === "tie" && "🤝 Epic Match! It's a Tie!"}
+                </h1>
+                <p className="mt-1 text-sm text-white/90">
+                  {winner === "tie"
+                    ? "Both teams demonstrated equal mastery and quick thinking!"
+                    : "Outstanding teamwork and active smart board participation!"}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl border-2 border-white/30 bg-blue-500/40 px-4 py-2.5 text-center backdrop-blur">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-white/80">🦁 Team A</div>
+                  <div className="font-display text-2xl font-black">{teamAScore} <span className="text-xs font-normal">pts</span></div>
+                </div>
+                <div className="text-lg font-black text-white/60">VS</div>
+                <div className="rounded-2xl border-2 border-white/30 bg-orange-500/40 px-4 py-2.5 text-center backdrop-blur">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-white/80">🐯 Team B</div>
+                  <div className="font-display text-2xl font-black">{teamBScore} <span className="text-xs font-normal">pts</span></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <Stat label="Accuracy" value={`${accuracy}%`} />
-            <Stat label="Correct" value={`${correctCount}`} />
-            <Stat label="Time" value={formatDuration(durationMs)} icon={<Clock className="h-3 w-3" />} />
+        </section>
+      ) : (
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-primary p-6 text-white shadow-float sm:p-7">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/15 blur-3xl" />
+          <div className="relative flex flex-wrap items-center justify-between gap-5">
+            <div>
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/85">
+                <Trophy className="h-3.5 w-3.5" /> Quiz Completed · {topic}
+              </div>
+              <h1 className={cn("mt-1 font-display font-extrabold tracking-tight", big ? "text-5xl" : "text-3xl sm:text-4xl")}>
+                Score · {correctCount} / {total}
+              </h1>
+              <p className="mt-1 max-w-md text-sm text-white/85">
+                Your personal result · review every question and explanation below.
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Stat label="Accuracy" value={`${accuracy}%`} />
+              <Stat label="Correct" value={`${correctCount}`} />
+              <Stat label="Time" value={formatDuration(durationMs)} icon={<Clock className="h-3 w-3" />} />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Summary chips */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -102,8 +163,22 @@ export function QuizAnalytics({ big, onRestart }: { big: boolean; onRestart: () 
                 userAnswered ? (isCorrect ? "border-success/40" : "border-destructive/40") : "border-border/60",
               )}>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Question {i + 1}{q.difficulty ? ` · ${q.difficulty}` : ""}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Question {i + 1}{q.difficulty ? ` · ${q.difficulty}` : ""}
+                    </span>
+                    {isTeam && (
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider",
+                          i % 2 === 0
+                            ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                            : "bg-orange-500/15 text-orange-600 dark:text-orange-400",
+                        )}
+                      >
+                        {i % 2 === 0 ? "🦁 Team A" : "🐯 Team B"}
+                      </span>
+                    )}
                   </div>
                   {userAnswered ? (
                     isCorrect ? (
