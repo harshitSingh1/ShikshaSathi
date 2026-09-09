@@ -81,6 +81,6 @@ function cleanTopic(value: string): string {
     .replace(/[.?!]+$/, "")
     .replace(/\s+(?:to|for)\s+(?:class|grade|std|standard)\s*\d{1,2}(?:\s+(?:students?|children))?$/i, "")
     .replace(/\s+(?:students?|children)$/i, "")
-    .replace(/^["']|["']$/g, "")
     .trim();
 }
+
