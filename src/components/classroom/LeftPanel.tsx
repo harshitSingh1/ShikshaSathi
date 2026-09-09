@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, ChevronDown, ClipboardList, GraduationCap, HardDrive, History } from "lucide-react";
+import { BookOpen, ChevronDown, ClipboardList, GraduationCap, HardDrive, History, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMode } from "./mode-context";
@@ -9,6 +9,7 @@ import { QuizHistoryCard } from "./quiz/QuizHistoryCard";
 import { SessionMemoryCard } from "./ai-engine/AIUnderstandingEngine";
 import { NCERTNavigator } from "./curriculum/NCERTNavigator";
 import { OfflineLibraryModal } from "./OfflineLibraryModal";
+import { StarBoardModal } from "./smartboard/StarBoardModal";
 
 type Primary = {
   label: string;
@@ -35,8 +36,9 @@ const PRIMARY: Primary[] = [
 export function LeftPanel() {
   const modeCtx = useMode();
   const { sendText, intent } = useVoice();
-  const { loadDirectResponse } = useTeachingEngine();
+  const { loadDirectResponse, currentTopic } = useTeachingEngine();
   const [showOfflineLibrary, setShowOfflineLibrary] = useState(false);
+  const [showStarBoard, setShowStarBoard] = useState(false);
 
   const requestTopic = (label: string) => {
     const topic = intent.topic.trim();
@@ -111,6 +113,25 @@ export function LeftPanel() {
           </div>
           <span className="text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5">→</span>
         </button>
+
+        {/* Classroom Star Board & Recognition Badges */}
+        <button
+          onClick={() => setShowStarBoard(true)}
+          className="group flex items-center gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3 text-left shadow-soft transition-all hover:-translate-y-0.5 hover:border-amber-500/50 hover:shadow-card"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-500/20 text-amber-600">
+            <Star className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <span className="block truncate font-display text-xs font-bold text-foreground">
+              Classroom Star Board
+            </span>
+            <span className="block truncate text-[10px] text-muted-foreground">
+              Award participation stars & badges
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5">→</span>
+        </button>
       </div>
 
       {/* NCERT Syllabus Navigator */}
@@ -140,6 +161,14 @@ export function LeftPanel() {
             loadDirectResponse(data);
           }}
           onClose={() => setShowOfflineLibrary(false)}
+        />
+      )}
+
+      {/* Star Board Modal */}
+      {showStarBoard && (
+        <StarBoardModal
+          activeTopic={currentTopic}
+          onClose={() => setShowStarBoard(false)}
         />
       )}
     </aside>

@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { soundEffects } from "@/lib/audio/sound-effects";
 
 export function QuizTimer({ keyId, total = 20, big = false }: { keyId: string; total?: number; big?: boolean }) {
   const [left, setLeft] = useState(total);
   useEffect(() => {
     setLeft(total);
     const t = window.setInterval(() => {
-      setLeft((l) => (l <= 0 ? 0 : l - 1));
+      setLeft((l) => {
+        const next = l <= 0 ? 0 : l - 1;
+        if (next <= 5 && next > 0) {
+          soundEffects.playTick();
+        }
+        return next;
+      });
     }, 1000);
     return () => window.clearInterval(t);
   }, [keyId, total]);

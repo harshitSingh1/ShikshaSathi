@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { CheckCircle2, Clock, RefreshCcw, Swords, Trophy, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTeachingEngine } from "../ai-engine/teaching-engine-context";
 import { useMode } from "../mode-context";
+import { soundEffects } from "@/lib/audio/sound-effects";
 
 function formatDuration(ms: number): string {
   if (!ms || ms < 0) return "0s";
@@ -17,6 +19,10 @@ export function QuizAnalytics({ big, onRestart }: { big: boolean; onRestart: () 
   const { userAnswers, quizStartedAt, quizFinishedAt, quizSettings } = useMode();
   const topic = response?.quiz?.topic ?? response?.topic ?? "Quiz";
   const questions = response?.quiz?.questions ?? [];
+
+  useEffect(() => {
+    soundEffects.playFanfare();
+  }, []);
 
   if (!questions.length) {
     return (

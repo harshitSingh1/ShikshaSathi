@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Layers, PenTool, Play, Presentation as PresentationIcon, Printer, Sparkles, X } from "lucide-react";
+import { BookOpen, Layers, PenTool, Play, Presentation as PresentationIcon, Printer, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StreamingOverlay } from "./StreamingOverlay";
 import { EmptyState } from "./EmptyState";
@@ -23,6 +23,7 @@ import { QuizExperience } from "./quiz/QuizExperience";
 import { NarrateButton } from "./NarrateButton";
 import { ChalkboardOverlay } from "./smartboard/ChalkboardOverlay";
 import { PrintableWorksheet } from "./PrintableWorksheet";
+import { TeacherLessonPlanModal } from "./TeacherLessonPlanModal";
 
 const TOPIC_EMOJI: Record<string, string> = {
   nature: "🌱",
@@ -40,6 +41,7 @@ export function CenterCanvas({ presentation }: { presentation: boolean }) {
   const [smartBoard, setSmartBoard] = useState(false);
   const [showChalkboard, setShowChalkboard] = useState(false);
   const [showWorksheet, setShowWorksheet] = useState(false);
+  const [showLessonPlan, setShowLessonPlan] = useState(false);
   const { mode, enterQuiz } = useMode();
   const quizActive = mode === "quiz";
   const { response, classroomContext, updateClassroomContext } = useTeachingEngine();
@@ -69,6 +71,7 @@ export function CenterCanvas({ presentation }: { presentation: boolean }) {
         onToggleChalkboard={() => setShowChalkboard((c) => !c)}
         hasContent={hasLesson || quizActive}
         onOpenWorksheet={() => setShowWorksheet(true)}
+        onOpenLessonPlan={() => setShowLessonPlan(true)}
       />
       <div className="relative flex-1 overflow-y-auto bg-gradient-hero p-6 sm:p-8">
         {quizActive ? (
@@ -88,6 +91,9 @@ export function CenterCanvas({ presentation }: { presentation: boolean }) {
       {showChalkboard && <ChalkboardOverlay onClose={() => setShowChalkboard(false)} />}
       {showWorksheet && response && (
         <PrintableWorksheet response={response} onClose={() => setShowWorksheet(false)} />
+      )}
+      {showLessonPlan && response && (
+        <TeacherLessonPlanModal response={response} onClose={() => setShowLessonPlan(false)} />
       )}
     </div>
   );
@@ -109,6 +115,7 @@ function CanvasHeader({
   onToggleChalkboard,
   hasContent,
   onOpenWorksheet,
+  onOpenLessonPlan,
 }: {
   theme: LessonTheme;
   onTheme: (t: LessonTheme) => void;
@@ -120,6 +127,7 @@ function CanvasHeader({
   onToggleChalkboard: () => void;
   hasContent: boolean;
   onOpenWorksheet: () => void;
+  onOpenLessonPlan: () => void;
 }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border/60 bg-card/80 px-4 py-2.5 backdrop-blur sm:px-5">
@@ -175,6 +183,17 @@ function CanvasHeader({
             title="Generate print-ready classroom A4 worksheet"
           >
             <Printer className="h-3.5 w-3.5" /> Worksheet
+          </button>
+        )}
+
+        {/* Teacher Lesson Plan (TLP) Button */}
+        {hasContent && (
+          <button
+            onClick={onOpenLessonPlan}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+            title="View NEP 2020 Teacher Lesson Plan (TLP)"
+          >
+            <BookOpen className="h-3.5 w-3.5" /> Lesson Plan
           </button>
         )}
         {!presentation && (
