@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { generateTeachingResponse } from "@/lib/ai/teaching-engine.functions";
 import type { LanguageValue, TeachingResponse } from "@/lib/ai/schema";
+import { saveOfflineLesson } from "@/lib/storage/offline-library";
 
 export type EngineHints = {
   grade?: string;
@@ -55,6 +56,7 @@ type Ctx = {
   lastDebug: unknown | null;
   updateClassroomContext: (patch: Partial<ClassroomContextState>) => void;
   runEngine: (input: string, hints?: EngineHints) => Promise<TeachingResponse | null>;
+  loadDirectResponse: (customResponse: TeachingResponse) => void;
   reset: () => void;
 };
 
@@ -149,9 +151,9 @@ export function TeachingEngineProvider({ children }: { children: React.ReactNode
           data: {
             input,
             intent: hints?.intent,
-            contextTopic: ref.current.topic ?? undefined,
             grade: hints?.grade,
             language: hints?.language,
+            contextTopic: ref.current.topic ?? undefined,
           },
         });
         setStatus("preparing");
@@ -159,6 +161,7 @@ export function TeachingEngineProvider({ children }: { children: React.ReactNode
         ref.current = next;
         setClassroomContext(next);
         setResponse(ctxToResponse(next, result.intent));
+        saveOfflineLesson(result);
         const meta = (result as any)._meta ?? {};
         setLastDebug({ ok: true, intent: result.intent, topic: result.topic, provider: meta.provider, fallbackReason: meta.fallbackReason });
         if (typeof window !== "undefined") {
@@ -182,6 +185,14 @@ export function TeachingEngineProvider({ children }: { children: React.ReactNode
     [generate],
   );
 
+  const loadDirectResponse = useCallback((customResponse: TeachingResponse) => {
+    const next = merge(ref.current, customResponse);
+    ref.current = next;
+    setClassroomContext(next);
+    setResponse(ctxToResponse(next, customResponse.intent));
+    setStatus("done");
+  }, []);
+
   const updateClassroomContext = useCallback((patch: Partial<ClassroomContextState>) => {
     const next = { ...ref.current, ...patch };
     ref.current = next;
@@ -195,6 +206,11 @@ export function TeachingEngineProvider({ children }: { children: React.ReactNode
     setError(null);
     ref.current = EMPTY;
     setClassroomContext(EMPTY);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("ss-classroom-context");
+      } catch {/* noop */}
+    }
   }, []);
 
   const value = useMemo<Ctx>(
@@ -203,14 +219,25 @@ export function TeachingEngineProvider({ children }: { children: React.ReactNode
       response,
       error,
       classroomContext,
-      currentTopic: classroomContext.topic,
-      currentLesson: classroomContext.lesson,
+      currentTopic: response?.topic ?? classroomContext.topic,
+      currentLesson: response?.lesson ?? classroomContext.lesson,
       lastDebug,
       updateClassroomContext,
       runEngine,
+      loadDirectResponse,
       reset,
     }),
-    [status, response, error, classroomContext, lastDebug, updateClassroomContext, runEngine, reset],
+    [
+      status,
+      response,
+      error,
+      classroomContext,
+      lastDebug,
+      updateClassroomContext,
+      runEngine,
+      loadDirectResponse,
+      reset,
+    ],
   );
   return <TeachingEngineCtx.Provider value={value}>{children}</TeachingEngineCtx.Provider>;
 }

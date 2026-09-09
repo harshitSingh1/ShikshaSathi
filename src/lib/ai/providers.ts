@@ -11,87 +11,35 @@ export type LessonResult = {
   data: TeachingResponse;
   provider: ProviderName;
   fallbackReason?: string;
-  attempts: { provider: ProviderName; ok: boolean; error?: string; latencyMs: number }[];
+  attempts: Array<{ provider: ProviderName; error: string }>;  
 };
 
-const OPENROUTER_MODELS = [
-  "google/gemma-3-4b-it:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-];
+export type GeneratedContent = {
+  text: string;
+  usedFallback: boolean;
+  fallbackReason?: string;
+};
 
-function stripFences(s: string): string {
-  return s.replace(/^\s*```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+/**
+ * Fallback Teaching Content for offline or failed API calls.
+ * Returns a structured lesson for any topic.
+ */
+async function generateLessonOffline(
+  topic: string,
+  intent: "teaching" | "quiz",
+  grade: string,
+  language: LanguageValue,
+): Promise<TeachingResponse> {
+  const templateLesson = synthFallback(topic, grade, language);
+  return {
+    intent,
+    ...templateLesson,
+  };
 }
 
-function parseAndValidate(text: string, intent: "teaching" | "quiz"): TeachingResponse {
-  const json = JSON.parse(stripFences(text || ""));
-  const merged = { ...(json as object), intent } as Record<string, unknown>;
-  const q = (merged as any).quiz?.questions;
-  if (Array.isArray(q) && q.length > 5) (merged as any).quiz.questions = q.slice(0, 5);
-  return teachingResponseSchema.parse(merged);
-}
-
-async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
-  return await Promise.race([
-    p,
-    new Promise<T>((_, rej) => setTimeout(() => rej(new Error(`Timeout after ${ms}ms`)), ms)),
-  ]);
-}
-
-async function tryGemini(prompt: string, intent: "teaching" | "quiz"): Promise<TeachingResponse> {
-  const model = createGeminiProvider()(DEFAULT_TEXT_MODEL);
-  const { text } = await withTimeout(
-    generateText({
-      model,
-      prompt,
-      providerOptions: { google: { responseMimeType: "application/json" } },
-    }),
-    12_000,
-  );
-  return parseAndValidate(text, intent);
-}
-
-async function tryOpenRouter(prompt: string, intent: "teaching" | "quiz"): Promise<TeachingResponse> {
-  const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error("OPENROUTER_API_KEY missing");
-  let lastErr: unknown = null;
-  for (const modelId of OPENROUTER_MODELS) {
-    try {
-      const res = await withTimeout(
-        fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${key}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://shikshasathi.lovable.app",
-            "X-Title": "ShikshaSathi",
-          },
-          body: JSON.stringify({
-            model: modelId,
-            messages: [
-              { role: "system", content: "You output only valid JSON. No prose, no markdown." },
-              { role: "user", content: prompt },
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0.6,
-          }),
-        }),
-        12_000,
-      );
-      if (!res.ok) {
-        const body = await res.text();
-        throw new Error(`OpenRouter ${res.status}: ${body.slice(0, 160)}`);
-      }
-      const data = (await res.json()) as any;
-      const text: string = data?.choices?.[0]?.message?.content ?? "";
-      return parseAndValidate(text, intent);
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw lastErr ?? new Error("OpenRouter all models failed");
-}
-
+/**
+ * Try Gemini first, fallback to OpenRouter, then to local templates.
+ */
 export async function generateLessonJSON(
   topic: string,
   intent: "teaching" | "quiz",
@@ -104,47 +52,44 @@ export async function generateLessonJSON(
   const attempts: LessonResult["attempts"] = [];
 
   // 1) Gemini
-  if (process.env.GOOGLE_API_KEY) {
-    const t0 = Date.now();
-    try {
-      const data = await tryGemini(prompt, intent);
-      attempts.push({ provider: "gemini", ok: true, latencyMs: Date.now() - t0 });
-      return { data, provider: "gemini", attempts };
-    } catch (err) {
-      const { code, message } = classifyGeminiError(err);
-      attempts.push({ provider: "gemini", ok: false, error: `[${code}] ${message}`, latencyMs: Date.now() - t0 });
-      console.warn("[providers] gemini failed:", code, message);
+  try {
+    const gemini = createGeminiProvider();
+    const { text } = await generateText({
+      model: DEFAULT_TEXT_MODEL,
+      prompt,
+      provider: gemini,
+    });
+    const json = JSON.parse(text);
+    const parsed = teachingResponseSchema.parse(json);
+    return { data: parsed, provider: "gemini", attempts };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    attempts.push({ provider: "gemini", error: msg });
+    const fallbackReason = classifyGeminiError(err);
+    if (fallbackReason === "net") {
+      // Network error - try OpenRouter
+    } else if (fallbackReason === "auth") {
+      // Auth error - go straight to local
+      const local = await generateLessonOffline(topic, intent, grade, language);
+      return { data: local, provider: "local", fallbackReason: "gemini-auth", attempts };
     }
-  } else {
-    attempts.push({ provider: "gemini", ok: false, error: "GOOGLE_API_KEY missing", latencyMs: 0 });
   }
 
   // 2) OpenRouter
-  if (process.env.OPENROUTER_API_KEY) {
-    const t0 = Date.now();
-    try {
-      const data = await tryOpenRouter(prompt, intent);
-      attempts.push({ provider: "openrouter", ok: true, latencyMs: Date.now() - t0 });
-      return { data, provider: "openrouter", fallbackReason: "gemini-failed", attempts };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      attempts.push({ provider: "openrouter", ok: false, error: msg, latencyMs: Date.now() - t0 });
-      console.warn("[providers] openrouter failed:", msg);
-    }
-  } else {
-    attempts.push({ provider: "openrouter", ok: false, error: "OPENROUTER_API_KEY missing", latencyMs: 0 });
+  try {
+    const { text } = await generateText({
+      model: "openrouter/meta-llama/llama-2-70b-chat",
+      prompt,
+    });
+    const json = JSON.parse(text);
+    const parsed = teachingResponseSchema.parse(json);
+    return { data: parsed, provider: "openrouter", attempts };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    attempts.push({ provider: "openrouter", error: msg });
   }
 
-  // 3) Local
-  const data = synthFallback(topic, intent, grade, language);
-  return {
-    data,
-    provider: "local",
-    fallbackReason:
-      language === "Hinglish"
-        ? attempts.find((a) => !a.ok)?.error ?? "no-providers-configured"
-        : "offline-language-unsupported: local fallback is available in Hinglish only",
-    attempts,
-  };
+  // 3) Local fallback
+  const local = await generateLessonOffline(topic, intent, grade, language);
+  return { data: local, provider: "local", fallbackReason: "all-apis-failed", attempts };
 }
-
