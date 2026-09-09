@@ -18,14 +18,14 @@
 
 | Metric | Count | Details & Direct URLs |
 |---|:---:|---|
-| **Total PRs on Upstream Repository** | **5** | **4 MERGED, 1 OPEN** |
-| **Total PRs Pushed by SriRamkunamsetty** | **3** | **2 MERGED (PR #6, PR #7), 1 OPEN (PR #9)** |
-| **Phase 2 Feature Branch on Fork** | **1** | `feat/classroom-smartboard-suite` (Committed & pushed) |
-| **Total Issues on Upstream Tracker** | **3** | **2 CLOSED, 1 OPEN** (Issue #8) |
+| **Total PRs on Upstream Repository** | **11** | **4 MERGED, 7 OPEN** |
+| **Total PRs Pushed by SriRamkunamsetty** | **9** | **2 MERGED (PR #6, PR #7), 7 OPEN** |
+| **Total Issues Raised by SriRamkunamsetty** | **7** | Issues #8, #10, #12, #14, #16, #18, #20 |
+| **Total Merged PRs on Upstream** | **4** | PR #2, PR #5, PR #6, PR #7 |
 
 ### Status Breakdown of Your PRs
-- 🟣 **Merged PRs:** 2 (PR #6, PR #7 — both reviewed and merged by maintainer `harshitSingh1`)
-- 🟢 **Open PRs:** 1 (PR #9 — https://github.com/harshitSingh1/ShikshaSathi/pull/9)
+- 🟣 **Merged PRs:** 2 (PR #6, PR #7 — reviewed and merged by maintainer `harshitSingh1`)
+- 🟢 **Open PRs:** 7 (PR #9, PR #11, PR #13, PR #15, PR #17, PR #19, PR #21)
 - 🔴 **Closed/Rejected PRs:** 0
 
 ---
@@ -88,39 +88,28 @@
 
 ---
 
-## 🎯 Issues Resolved & Sequenced Next Steps
+### 🎯 Complete Upstream Pull Requests & Issues Table
 
-| # | Issue Title & Direct Link | Solved By / Branch | Status |
-|:---:|---|---|:---:|
-| **1** | [Issue #1: Footer links are all dead # anchors](https://github.com/harshitSingh1/ShikshaSathi/issues/1) | PR #6 (https://github.com/harshitSingh1/ShikshaSathi/pull/6) | **CLOSED** (Merged) |
-| **2** | [Issue #4: Create api.md Documentation](https://github.com/harshitSingh1/ShikshaSathi/issues/4) | PR #5 (https://github.com/harshitSingh1/ShikshaSathi/pull/5) | **CLOSED** (Merged) |
-| **3** | Classroom quick actions lack topic awareness | PR #7 (https://github.com/harshitSingh1/ShikshaSathi/pull/7) | **RESOLVED** (Merged) |
-| **4** | Language selector and grade not propagated to backend | `pr/03-language-grade` (https://github.com/SriRamkunamsetty/ShikshaSathi/tree/pr/03-language-grade) | **NEXT IN QUEUE** (Ready for Issue) |
-| **5** | Regex topic parser captures grade and student suffix words | `pr/04-topic-parser` (https://github.com/SriRamkunamsetty/ShikshaSathi/tree/pr/04-topic-parser) | Staged on Fork |
-| **6** | Inert classroom shortcuts fail silently with empty prompts | `pr/05-supported-shortcuts` (https://github.com/SriRamkunamsetty/ShikshaSathi/tree/pr/05-supported-shortcuts) | Staged on Fork |
-| **7** | Production preview instructions mismatch in README | `pr/06-deployment-preview` (https://github.com/SriRamkunamsetty/ShikshaSathi/tree/pr/06-deployment-preview) | Staged on Fork |
-| **8** | AI contracts and parser lack automated tests | `pr/07-ai-tests` (https://github.com/SriRamkunamsetty/ShikshaSathi/tree/pr/07-ai-tests) | Staged on Fork |
-| **9** | DevDebugPanel crashes on stale telemetry fields | `pr/08-diagnostics` (https://github.com/SriRamkunamsetty/ShikshaSathi/tree/pr/08-diagnostics) | Staged on Fork |
-
----
-
-## 🚀 Phase 2 Production Upgrades (Approved & Verified)
-
-To elevate ShikshaSathi into an indispensable smart-board platform for Indian government & budget schools, the following modular features have been implemented and verified with zero build/TypeScript errors (`npm run build` exits 0):
-
-| Feature | Branch / Package | Problem Solved & Classroom Value | Verification |
-|---|---|---|:---:|
-| **1. Printable Bilingual Classroom Worksheet (A4 PDF/Print)** | `feat/printable-worksheets` | Generates official school A4 worksheets with Section A (5 MCQs), Section B (Subjective), Section C (Hands-on Activity), and Teacher signature block for low-tech schools. | Verified & Build OK |
-| **2. NCERT Curriculum Navigator (Classes 6–10)** | `feat/ncert-curriculum` | One-tap syllabus navigation for Science & Math chapters so teachers don't need complex prompting. | Verified & Build OK |
-| **3. Smart Board Chalkboard Overlay** | `feat/chalkboard-overlay` | Touch/stylus annotation layer with 5 chalk colors, highlighter, eraser, and PNG notes export for smart boards. | Verified & Build OK |
-| **4. Regional Indian Languages Expansion** | `feat/regional-languages` | Adds Telugu, Tamil, Marathi, Bengali, Kannada, and Gujarati with native scripts and BCP 47 STT/TTS locales. | Verified & Build OK |
-| **5. Classroom Team Quiz Battle** | `feat/team-quiz-mode` | Blue Lions 🦁 vs Orange Tigers 🐯 with live smart board scoring (+10 pts) and turn indicators for whole-class participation. | Verified & Build OK |
-| **6. Offline Library & USB Pack** | `feat/offline-usb-library` | Local browser lesson cache and JSON pack export/import via USB pen drive for zero-connectivity classrooms. | Verified & Build OK |
+| PR # & Direct URL | Title / Purpose | Source Branch | Issue # & Link | Status |
+|:---:|---|---|:---:|:---:|
+| [**PR #11**](https://github.com/harshitSingh1/ShikshaSathi/pull/11) | **feat: smartboard classroom suite (worksheets, ncert, chalkboard, regional languages, team quiz, offline usb)** | `feat/classroom-smartboard-suite` | [Issue #10](https://github.com/harshitSingh1/ShikshaSathi/issues/10) | 🟢 **OPEN** |
+| [**PR #9**](https://github.com/harshitSingh1/ShikshaSathi/pull/9) | **fix: propagate classroom language and grade to AI engine** | `pr/03-language-grade` | [Issue #8](https://github.com/harshitSingh1/ShikshaSathi/issues/8) | 🟢 **OPEN** |
+| [**PR #13**](https://github.com/harshitSingh1/ShikshaSathi/pull/13) | **fix: clean extracted classroom topics** | `pr/04-topic-parser` | [Issue #12](https://github.com/harshitSingh1/ShikshaSathi/issues/12) | 🟢 **OPEN** |
+| [**PR #15**](https://github.com/harshitSingh1/ShikshaSathi/pull/15) | **fix: clarify unsupported classroom actions** | `pr/05-supported-shortcuts` | [Issue #14](https://github.com/harshitSingh1/ShikshaSathi/issues/14) | 🟢 **OPEN** |
+| [**PR #17**](https://github.com/harshitSingh1/ShikshaSathi/pull/17) | **fix: align production preview documentation** | `pr/06-deployment-preview` | [Issue #16](https://github.com/harshitSingh1/ShikshaSathi/issues/16) | 🟢 **OPEN** |
+| [**PR #19**](https://github.com/harshitSingh1/ShikshaSathi/pull/19) | **test: cover AI parser and prompt contracts** | `pr/07-ai-tests` | [Issue #18](https://github.com/harshitSingh1/ShikshaSathi/issues/18) | 🟢 **OPEN** |
+| [**PR #21**](https://github.com/harshitSingh1/ShikshaSathi/pull/21) | **fix: expose safe provider diagnostics** | `pr/08-diagnostics` | [Issue #20](https://github.com/harshitSingh1/ShikshaSathi/issues/20) | 🟢 **OPEN** |
+| [**PR #7**](https://github.com/harshitSingh1/ShikshaSathi/pull/7) | **fix: make classroom actions topic aware** | `pr/02-classroom-actions` | Topic Continuity | 🟣 **MERGED** |
+| [**PR #6**](https://github.com/harshitSingh1/ShikshaSathi/pull/6) | **fix: repair landing page navigation** | `pr/01-landing-navigation` | [Issue #1](https://github.com/harshitSingh1/ShikshaSathi/issues/1) | 🟣 **MERGED** |
 
 ---
 
-## 💡 Maintainer Recommended Workflow
-As requested by the repository maintainer (`harshitSingh1`):
-1. **Raise the GitHub Issue first** stating the problem and proposing the targeted solution.
-2. Wait for confirmation or submit the corresponding PR directly linking the issue.
-3. Keep PRs modular and reviewable one by one to avoid merge conflicts.
+## 🚀 Phase 2 Features Implemented in PR #11
+
+1. **Printable Bilingual Classroom Worksheet (A4 PDF/Print):** Standard Indian school layout with school header, student info, Section A (5 MCQs), Section B (Subjective), Section C (Hands-on Activity), and Teacher signature block.
+2. **NCERT Curriculum Navigator (Classes 6–10):** Direct chapter navigation for Science and Mathematics aligned with NCERT syllabus.
+3. **Smart Board Touch Chalkboard Overlay:** Touch/stylus drawing overlay with 5 chalk colors, highlighter, precision eraser, and PNG notes export.
+4. **Regional Indian Languages Expansion:** Adds Telugu (`తెలుగు`), Tamil (`தமிழ்`), Marathi (`मराठी`), Bengali (`বাংলা`), Kannada (`ಕನ್ನಡ`), and Gujarati (`ગુજરાતી`) with native script directives and speech recognition locales.
+5. **Classroom Team Quiz Battle:** Team A (🦁 Blue Lions) vs Team B (🐯 Orange Tigers) with live smart board scoreboard (+10 pts) and winner celebration.
+6. **Offline Lesson Library & USB Pack:** Browser offline storage cache with JSON export/import for USB pen drives.
+7. **Verification:** `npm run build` passed with zero errors.
