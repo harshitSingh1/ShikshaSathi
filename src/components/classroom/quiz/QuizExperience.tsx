@@ -5,10 +5,16 @@ import {
   ChevronRight,
   Clock,
   Sparkles,
+  Swords,
+  Trophy,
+  Users,
+  Volume2,
+  VolumeX,
   Zap,
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { soundEffects } from "@/lib/audio/sound-effects";
 import { useMode, type QuizDifficulty, type QuizQuestionType } from "../mode-context";
 import { SUGGESTED_TOPICS } from "./quiz-data";
 import { QuizTimer } from "./QuizTimer";
@@ -38,7 +44,7 @@ const COUNT_OPTIONS = [5, 10, 15];
 const DIFFICULTY_OPTIONS: QuizDifficulty[] = ["easy", "medium", "hard"];
 
 export function QuizExperience({ big }: { big: boolean }) {
-  const { quizPhase, setQuizPhase, questionIndex, setQuestionIndex, recordAnswer, resetAnswers } = useMode();
+  const { quizPhase, setQuizPhase, questionIndex, setQuestionIndex, recordAnswer, resetAnswers, quizSettings } = useMode();
   const { response, currentTopic } = useTeachingEngine();
 
   // Build the live question list strictly from the AI-generated quiz.
@@ -86,6 +92,7 @@ export function QuizExperience({ big }: { big: boolean }) {
       index={Math.min(questionIndex, questions.length - 1)}
       questions={questions}
       meta={quizMeta}
+      teamMode={quizSettings.teamMode}
       onAnswer={(q, selectedIndex, selectedText, isCorrect) =>
         recordAnswer({ questionId: q.id, selectedIndex, selectedText, isCorrect })
       }
@@ -233,6 +240,48 @@ function QuizSetup({ onStart, big, currentTopic, hasQuiz }: { onStart: () => voi
             </div>
           </div>
         </div>
+
+        {/* Classroom Engagement: Individual vs Team Battle Mode */}
+        <div className="mt-4 border-t border-border/60 pt-4">
+          <div className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Classroom Engagement Mode</span>
+            <span className="font-semibold text-primary">Smart Board Ready</span>
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button
+              onClick={() => setQuizSettings({ teamMode: false })}
+              className={cn(
+                "flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition-all",
+                !quizSettings.teamMode
+                  ? "border-primary bg-primary/10 shadow-glow"
+                  : "border-border/60 bg-background hover:border-primary/40",
+              )}
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-xl">👤</span>
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-foreground">Individual Practice</div>
+                <div className="text-[11px] text-muted-foreground">Standard single-student or class-wide practice</div>
+              </div>
+              {!quizSettings.teamMode && <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-primary" />}
+            </button>
+            <button
+              onClick={() => setQuizSettings({ teamMode: true })}
+              className={cn(
+                "flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition-all",
+                quizSettings.teamMode
+                  ? "border-amber-500 bg-amber-500/10 shadow-glow"
+                  : "border-border/60 bg-background hover:border-amber-500/40",
+              )}
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-500/15 text-xl">🦁⚡🐯</span>
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-foreground">Team Battle (Group A vs Group B)</div>
+                <div className="text-[11px] text-muted-foreground">Alternating turns & live smart board scoreboard (+10 pts)</div>
+              </div>
+              {quizSettings.teamMode && <CheckCircle2 className="ml-auto h-4 w-4 shrink-0 text-amber-500" />}
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* Micro Quiz quick actions */}
@@ -337,6 +386,7 @@ function QuizLive({
   index,
   questions,
   meta,
+  teamMode,
   onNext,
   onAnswer,
 }: {
@@ -344,14 +394,35 @@ function QuizLive({
   index: number;
   questions: LiveQuestion[];
   meta: { topic: string; klass: string; language: string; title: string };
+  teamMode: boolean;
   onNext: () => void;
   onAnswer: (q: LiveQuestion, selectedIndex: number, selectedText: string, isCorrect: boolean) => void;
 }) {
+  const { userAnswers } = useMode();
   const q = questions[index];
   const total = questions.length;
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [fillValue, setFillValue] = useState("");
+
+  const isTeamATurn = index % 2 === 0;
+
+  // Calculate scores from userAnswers
+  const teamAScore = questions.reduce((acc, question, i) => {
+    if (i % 2 === 0) {
+      const ans = userAnswers.find((a) => a.questionId === question.id);
+      return ans?.isCorrect ? acc + 10 : acc;
+    }
+    return acc;
+  }, 0);
+
+  const teamBScore = questions.reduce((acc, question, i) => {
+    if (i % 2 !== 0) {
+      const ans = userAnswers.find((a) => a.questionId === question.id);
+      return ans?.isCorrect ? acc + 10 : acc;
+    }
+    return acc;
+  }, 0);
 
   useEffect(() => {
     setSelected(null);
@@ -359,11 +430,19 @@ function QuizLive({
     setFillValue("");
   }, [index]);
 
+  const [soundOn, setSoundOn] = useState(soundEffects.isEnabled());
+
   const pick = (i: number) => {
     if (revealed) return;
     setSelected(i);
     setRevealed(true);
-    onAnswer(q, i, q.options[i] ?? "", i === q.correct);
+    const isCorrect = i === q.correct;
+    if (isCorrect) {
+      soundEffects.playCorrect();
+    } else {
+      soundEffects.playIncorrect();
+    }
+    onAnswer(q, i, q.options[i] ?? "", isCorrect);
   };
 
   const submitFill = () => {
@@ -372,7 +451,17 @@ function QuizLive({
     const isCorrect = fillValue.trim().toLowerCase() === correctText.trim().toLowerCase();
     setSelected(isCorrect ? q.correct : -1);
     setRevealed(true);
+    if (isCorrect) {
+      soundEffects.playCorrect();
+    } else {
+      soundEffects.playIncorrect();
+    }
     onAnswer(q, isCorrect ? q.correct : -1, fillValue.trim(), isCorrect);
+  };
+
+  const toggleSound = () => {
+    const next = soundEffects.toggle();
+    setSoundOn(next);
   };
 
   return (
@@ -389,8 +478,18 @@ function QuizLive({
             {q.difficulty && ` · ${q.difficulty}`}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-          <Clock className="h-3.5 w-3.5" /> 20s per question
+        <div className="flex items-center gap-3 text-xs font-semibold text-muted-foreground">
+          <button
+            onClick={toggleSound}
+            className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+            title={soundOn ? "Mute classroom sound effects" : "Unmute classroom sound effects"}
+          >
+            {soundOn ? <Volume2 className="h-3.5 w-3.5 text-primary" /> : <VolumeX className="h-3.5 w-3.5 text-destructive" />}
+            <span>{soundOn ? "Sound ON" : "Muted"}</span>
+          </button>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" /> 20s per question
+          </div>
         </div>
       </div>
 
@@ -400,6 +499,72 @@ function QuizLive({
           style={{ width: `${((index + 1) / total) * 100}%` }}
         />
       </div>
+
+      {teamMode && (
+        <section className="flex flex-col gap-3 rounded-3xl border-2 border-amber-500/30 bg-card p-4 shadow-soft">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              <Swords className="h-4 w-4" /> Classroom Team Battle
+            </div>
+            <div className="text-[11px] font-bold text-muted-foreground">
+              +10 pts per correct answer
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div
+              className={cn(
+                "flex items-center justify-between rounded-2xl border-2 p-3.5 transition-all",
+                isTeamATurn
+                  ? "border-blue-500 bg-blue-500/10 shadow-glow ring-2 ring-blue-500/30"
+                  : "border-border/60 bg-background/50 opacity-75",
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🦁</span>
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">Team A · Lions</div>
+                  {isTeamATurn ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-300">
+                      <span className="h-1.5 w-1.5 animate-ping rounded-full bg-blue-500" /> Active Turn
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-muted-foreground">Waiting</span>
+                  )}
+                </div>
+              </div>
+              <div className="font-display text-3xl font-black text-foreground">
+                {teamAScore} <span className="text-xs font-normal text-muted-foreground">pts</span>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                "flex items-center justify-between rounded-2xl border-2 p-3.5 transition-all",
+                !isTeamATurn
+                  ? "border-orange-500 bg-orange-500/10 shadow-glow ring-2 ring-orange-500/30"
+                  : "border-border/60 bg-background/50 opacity-75",
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🐯</span>
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wider text-orange-600 dark:text-orange-400">Team B · Tigers</div>
+                  {!isTeamATurn ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-300">
+                      <span className="h-1.5 w-1.5 animate-ping rounded-full bg-orange-500" /> Active Turn
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-muted-foreground">Waiting</span>
+                  )}
+                </div>
+              </div>
+              <div className="font-display text-3xl font-black text-foreground">
+                {teamBScore} <span className="text-xs font-normal text-muted-foreground">pts</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-6 shadow-float sm:p-8">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
@@ -490,7 +655,13 @@ function QuizLive({
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-hero p-4 animate-fade-in">
             <div className="min-w-0 text-sm font-semibold text-foreground">
               <div>
-                {selected === q.correct ? "🎉 Great! Correct answer." : "💡 Not quite — correct answer is highlighted."}
+                {selected === q.correct
+                  ? teamMode
+                    ? `🎉 Correct! +10 pts awarded to ${isTeamATurn ? "Team A (Blue Lions 🦁)" : "Team B (Orange Tigers 🐯)}"}!`
+                    : "🎉 Great! Correct answer."
+                  : teamMode
+                    ? `💡 Incorrect. No points awarded to ${isTeamATurn ? "Team A" : "Team B"}. Correct answer is highlighted.`
+                    : "💡 Not quite — correct answer is highlighted."}
               </div>
               {q.explanation && (
                 <div className="mt-1 text-xs font-medium text-muted-foreground">{q.explanation}</div>

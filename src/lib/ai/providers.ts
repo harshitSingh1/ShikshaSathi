@@ -98,9 +98,7 @@ export async function generateLessonJSON(
   grade = "6",
   language: LanguageValue = "Hinglish",
 ): Promise<LessonResult> {
-  const prompt = intent === "quiz"
-    ? buildQuizPrompt(topic, grade, language)
-    : buildTeachingPrompt(topic, grade, language);
+  const prompt = intent === "quiz" ? buildQuizPrompt(topic, grade, language) : buildTeachingPrompt(topic, grade, language);
   const attempts: LessonResult["attempts"] = [];
 
   // 1) Gemini

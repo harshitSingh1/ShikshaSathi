@@ -10,6 +10,7 @@ export type QuizSettings = {
   questionType: QuizQuestionType;
   count: number;
   difficulty: QuizDifficulty;
+  teamMode: boolean;
 };
 
 export type QuizAnswer = {
@@ -23,6 +24,7 @@ const DEFAULT_QUIZ_SETTINGS: QuizSettings = {
   questionType: "mcq",
   count: 5,
   difficulty: "easy",
+  teamMode: false,
 };
 
 type Ctx = {
