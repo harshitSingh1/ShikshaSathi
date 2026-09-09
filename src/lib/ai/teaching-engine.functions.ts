@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { detectIntent, extractGrade, extractTopic, normalizeGrade } from "./parser";
 import { generateLessonJSON } from "./providers";
-import { LANGUAGES, type TeachingResponse } from "./schema";
+import { LANGUAGES, type LanguageValue, type TeachingResponse } from "./schema";
 
 const InputSchema = z
   .object({
@@ -28,12 +28,14 @@ export const generateTeachingResponse = createServerFn({ method: "POST" })
         ? data.contextTopic || "General"
         : extractTopic(data.input, data.contextTopic);
     const grade = normalizeGrade(data.grade ?? extractGrade(data.input));
-    const language = data.language ?? "Hinglish";
+    const language: LanguageValue = data.language ?? "Hinglish";
+
     const result = await generateLessonJSON(topic, intent, grade, language);
 
     console.info("[teaching-engine]", {
       topic,
       grade,
+      language,
       intent,
       provider: result.provider,
       fallbackReason: result.fallbackReason,

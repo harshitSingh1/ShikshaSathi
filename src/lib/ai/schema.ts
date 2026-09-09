@@ -2,7 +2,17 @@ import { z } from "zod";
 
 /** AI surface for classroom teaching + quiz, with rich teaching flow. */
 export const INTENT_VALUES = ["teaching", "quiz"] as const;
-export const LANGUAGES = ["English", "Hindi", "Hinglish"] as const;
+export const LANGUAGES = [
+  "English",
+  "Hindi",
+  "Hinglish",
+  "Telugu",
+  "Tamil",
+  "Marathi",
+  "Bengali",
+  "Kannada",
+  "Gujarati",
+] as const;
 export const THEMES = ["nature", "science", "history", "math", "language", "default"] as const;
 
 const visualStepSchema = z.object({

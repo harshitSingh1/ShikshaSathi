@@ -8,8 +8,14 @@ import { useVoice } from "./voice-context";
 
 const LANGS = [
   { label: "English", value: "English" as const },
-  { label: "हिन्दी", value: "Hindi" as const },
+  { label: "हिन्दी (Hindi)", value: "Hindi" as const },
   { label: "Hinglish", value: "Hinglish" as const },
+  { label: "తెలుగు (Telugu)", value: "Telugu" as const },
+  { label: "தமிழ் (Tamil)", value: "Tamil" as const },
+  { label: "मराठी (Marathi)", value: "Marathi" as const },
+  { label: "বাংলা (Bengali)", value: "Bengali" as const },
+  { label: "ಕನ್ನಡ (Kannada)", value: "Kannada" as const },
+  { label: "ગુજરાતી (Gujarati)", value: "Gujarati" as const },
 ];
 const CLASSES = Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`);
 
