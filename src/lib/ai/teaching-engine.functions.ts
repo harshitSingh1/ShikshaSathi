@@ -43,10 +43,6 @@ export const generateTeachingResponse = createServerFn({ method: "POST" })
 
     return {
       ...result.data,
-      _meta: {
-        provider: result.provider,
-        fallbackReason: result.fallbackReason,
-        attempts: result.attempts,
-      },
+      _meta: { provider: result.provider, fallbackReason: result.fallbackReason },
     };
   });

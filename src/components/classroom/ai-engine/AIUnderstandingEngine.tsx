@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useVoice } from "../voice-context";
-import { useTeachingEngine } from "./teaching-engine-context";
 import {
   INTENT_ORDER,
   INTENTS,
@@ -209,11 +208,11 @@ function RouteChip({ label, tone = "muted" }: { label: string; tone?: "muted" | 
 // ────────── Topic Extraction ──────────
 export function TopicExtractionCard() {
   const { intent } = useVoice();
-  const { classroomContext } = useTeachingEngine();
-  const hasTopic = Boolean(classroomContext.topic || intent.topic);
-  const subject = classroomContext.subject ?? "—";
-  const theme = classroomContext.theme ?? "—";
-  const confidence = hasTopic ? intent.confidence : 0;
+  const subject = /water|plant|sun|photo|cycle|food|nature/i.test(intent.topic + intent.transcript)
+    ? { name: "Science", theme: "Nature Theme" }
+    : /math|number|equation/i.test(intent.transcript)
+      ? { name: "Math", theme: "Numbers Theme" }
+      : { name: "Science", theme: "Nature Theme" };
 
   return (
     <section className="rounded-3xl border border-border/60 bg-card p-4 shadow-soft">
@@ -224,19 +223,19 @@ export function TopicExtractionCard() {
         <h4 className="text-sm font-bold tracking-tight text-foreground">Topic Extraction</h4>
       </header>
       <dl className="grid grid-cols-2 gap-2 text-xs">
-        <Field label="Topic" value={(classroomContext.topic ?? intent.topic) || "—"} />
-        <Field label="Class" value={classroomContext.grade ?? (intent.klass.replace("Class ", "") || "—")} />
-        <Field label="Language" value={classroomContext.language ?? (intent.language || "—")} />
-        <Field label="Subject" value={subject} />
-        <Field label="Theme" value={theme} wide />
+        <Field label="Topic" value={intent.topic} />
+        <Field label="Class" value={intent.klass.replace("Class ", "")} />
+        <Field label="Language" value={intent.language} />
+        <Field label="Subject" value={subject.name} />
+        <Field label="Theme" value={subject.theme} wide />
       </dl>
       <div className="mt-3 rounded-2xl border border-border/60 bg-background/80 p-2.5">
         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           <span>Topic Confidence</span>
-          <span className="text-primary">{confidence}%</span>
+          <span className="text-primary">97%</span>
         </div>
         <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-gradient-primary" style={{ width: `${confidence}%` }} />
+          <div className="h-full rounded-full bg-gradient-primary" style={{ width: "97%" }} />
         </div>
       </div>
     </section>
@@ -305,9 +304,7 @@ export function SupportedIntentsCard() {
 // ────────── Teaching Plan Preview ──────────
 export function TeachingPlanCard() {
   const { intent } = useVoice();
-  const { response } = useTeachingEngine();
   const detected = detectIntent(intent.transcript);
-  const topic = response?.topic ?? (intent.topic || "—");
   return (
     <section className="relative overflow-hidden rounded-3xl border-0 bg-gradient-primary p-5 text-white shadow-float">
       <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
@@ -322,12 +319,12 @@ export function TeachingPlanCard() {
         </div>
         <h4 className="mt-2 font-display text-lg font-extrabold tracking-tight">Teaching Plan Preview</h4>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-          <PlanField label="Topic" value={topic} />
-          <PlanField label="Visual" value={response?.visualType ?? "Not generated"} />
-          <PlanField label="Style" value={response?.grade ? `Class ${response.grade} Friendly` : "Not selected"} />
-          <PlanField label="Language" value={response?.language ?? (intent.language || "—")} />
+          <PlanField label="Topic" value={intent.topic} />
+          <PlanField label="Visual" value="Flowchart" />
+          <PlanField label="Style" value={`${intent.klass} Friendly`} />
+          <PlanField label="Language" value={intent.language} />
           <PlanField label="Follow-Up" value={detected === "quiz" ? "Activity" : "Quiz"} />
-          <PlanField label="Activity" value={response?.lesson?.activity ?? "Not generated"} />
+          <PlanField label="Activity" value="Plant Observation" />
         </dl>
       </div>
     </section>
@@ -345,12 +342,11 @@ function PlanField({ label, value }: { label: string; value: string }) {
 
 // ────────── Session Memory (left panel) ──────────
 export function SessionMemoryCard() {
-  const { classroomContext } = useTeachingEngine();
   const items = [
-    { label: "Current Topic", value: classroomContext.topic ?? "No topic yet", emoji: "🌱" },
-    { label: "Class", value: classroomContext.grade ? `Class ${classroomContext.grade}` : "Not selected", emoji: "🎓" },
-    { label: "Language", value: classroomContext.language ?? "Not selected", emoji: "🔤" },
-    { label: "Last Quiz", value: classroomContext.quiz?.title ?? "No quiz yet", emoji: "🧠" },
+    { label: "Current Topic", value: "Photosynthesis", emoji: "🌱" },
+    { label: "Previous Topic", value: "Water Cycle", emoji: "💧" },
+    { label: "Last Quiz", value: "Force & Motion", emoji: "🧠" },
+    { label: "Last Activity", value: "Plant Observation", emoji: "🌿" },
   ];
   return (
     <section className="rounded-3xl border border-border/60 bg-card p-4 shadow-soft">
